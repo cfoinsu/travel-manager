@@ -30,17 +30,17 @@ export const VIEWER_PROFILE_STORAGE_KEY = 'trip-command-center/viewer/v4-public'
 const LEGACY_TRIP_DOCUMENT_STORAGE_KEYS = ['trip-command-center/v3-public', 'trip-command-center/v2', 'trip-command-center/v1']
 const LEGACY_VIEWER_PROFILE_STORAGE_KEYS = ['trip-command-center/viewer/v3-public', 'trip-command-center/viewer']
 const TIMELINE_HOURS_PER_SLOT = 24 / Math.max(TIME_SLOTS.length || 1, 1)
-const PUBLIC_BASECAMP_ADDRESS = 'Pine Mountain Lake, Groveland, CA 95321'
-const PUBLIC_BASECAMP_COORDINATES = { lat: 37.8586, lng: -120.2142 }
+const PUBLIC_BASECAMP_ADDRESS = '제주시 애월읍 어음10길 85-29 (와일리제주)'
+const PUBLIC_BASECAMP_COORDINATES = { lat: 33.456, lng: 126.341 }
 
 const MAPS_LINKS = {
   airbnb: TRIP_META.airbnb.url,
-  grill: 'https://www.google.com/maps/search/?api=1&query=The+Grill+at+Pine+Mountain+Lake',
-  twoGuys: 'https://www.google.com/maps/search/?api=1&query=Two+Guys+Pizza+Pies+Groveland',
-  mountainRoom: 'https://www.google.com/maps/search/?api=1&query=The+Mountain+Room+Yosemite',
-  priestStation: 'https://www.google.com/maps/search/?api=1&query=Priest+Station+Cafe',
-  aroundHorn: 'https://www.google.com/maps/search/?api=1&query=Around+The+Horn+Brewing+Company+Groveland',
-  yosemite: 'https://www.google.com/maps/search/?api=1&query=Big+Oak+Flat+Entrance+Yosemite',
+  grill: 'https://www.google.com/maps/search/?api=1&query=협재+해녀의집+제주',
+  twoGuys: 'https://www.google.com/maps/search/?api=1&query=제주+흑돼지+애월',
+  mountainRoom: 'https://www.google.com/maps/search/?api=1&query=한림공원+제주',
+  priestStation: 'https://www.google.com/maps/search/?api=1&query=협재해수욕장+제주',
+  aroundHorn: 'https://www.google.com/maps/search/?api=1&query=애월+카페거리+제주',
+  yosemite: 'https://www.google.com/maps/search/?api=1&query=협재해수욕장+제주',
 }
 
 const SHARED_CONVOY_WINDOWS = {
@@ -59,58 +59,58 @@ function getConvoyWindowSpan(window) {
 
 const PUBLIC_FAMILY_PROFILES = {
   'north-star': {
-    title: 'Parkers',
-    name: 'Parkers',
-    shortOrigin: 'LA',
-    origin: 'Los Angeles',
-    originAddress: '2800 E Observatory Rd, Los Angeles, CA 90027',
-    originCoordinates: { lat: 34.1184, lng: -118.3004 },
-    responsibility: 'Arrival support',
-    routeSummary: 'Thursday arrival run into Pine Mountain Lake with a midpoint lunch and reset stop.',
-    note: 'Public trip unit used for first-wave arrival coverage.',
+    title: '이씨 가족',
+    name: '이씨 가족',
+    shortOrigin: '수원',
+    origin: '수원',
+    originAddress: '경기도 수원시 팔달구 인계동',
+    originCoordinates: { lat: 37.5583, lng: 126.7906 },
+    responsibility: '간식 + 아이 짐',
+    routeSummary: '수원 → 김포공항 → 제주공항 → 와일리제주.',
+    note: '1진 도착 커버리지 담당 공개 여행 유닛.',
   },
   'silver-peak': {
-    title: 'Jiangs',
-    name: 'Jiangs',
-    shortOrigin: 'SF',
-    origin: 'San Francisco',
-    originAddress: '1 Ferry Building, San Francisco, CA 94111',
-    originCoordinates: { lat: 37.7955, lng: -122.3937 },
-    responsibility: 'Shared supplies',
-    routeSummary: 'Thursday Bay Area arrival with a quick reset stop before the final mountain leg.',
-    note: 'Public trip unit used for same-day Bay Area arrival coverage.',
+    title: '김씨 가족',
+    name: '김씨 가족',
+    shortOrigin: '서울',
+    origin: '서울',
+    originAddress: '서울특별시 중구 을지로',
+    originCoordinates: { lat: 37.5583, lng: 126.7906 },
+    responsibility: '아이스박스 + 아침 과일',
+    routeSummary: '서울 → 김포공항 → 제주공항 → 와일리제주.',
+    note: '당일 서울 출발 커버리지 담당 공개 여행 유닛.',
   },
   'desert-bloom': {
-    title: 'Riveras',
-    name: 'Riveras',
-    shortOrigin: 'RN',
-    origin: 'Reno',
-    originAddress: '10 N Virginia St, Reno, NV 89501',
-    originCoordinates: { lat: 39.5296, lng: -119.8138 },
-    responsibility: 'Saturday park support',
-    routeSummary: 'Friday arrival flow into Pine Mountain Lake from Reno on one direct drive.',
-    note: 'Public trip unit used for the delayed-arrival branch of the plan.',
+    title: '박씨 가족',
+    name: '박씨 가족',
+    shortOrigin: '대전',
+    origin: '대전',
+    originAddress: '대전광역시 서구 둔산동',
+    originCoordinates: { lat: 36.7166, lng: 127.499 },
+    responsibility: '바베큐 장비 + 일요일 점심',
+    routeSummary: '대전 → 청주공항 → 제주공항 → 와일리제주.',
+    note: '지연 도착 브랜치 담당 공개 여행 유닛.',
   },
 }
 
 const PUBLIC_BASECAMP = {
-  name: 'Pine Mountain Lake Basecamp',
+  name: '와일리제주 (Wylie Jeju)',
   address: PUBLIC_BASECAMP_ADDRESS,
   coordinates: PUBLIC_BASECAMP_COORDINATES,
-  summary: 'Shared Groveland-area basecamp used as the trip staging point for arrival, reset, and departure windows.',
-  accessNote: 'Arrival and access details are intentionally redacted in the public version.',
-  directionsNote: 'Use the Pine Mountain Lake waypoint for planning. Exact arrival instructions are intentionally withheld.',
-  parkingNote: 'Parking and local access details are simplified in the public version.',
+  summary: '제주시 애월읍 와일리제주. 제주공항에서 약 30분 거리. 전 가족 도착·휴식·출발 거점.',
+  accessNote: '입주 및 출입 안내는 공개 버전에서 생략됩니다.',
+  directionsNote: '제주공항에서 애월읍 방면 약 26km. 렌터카 이용 권장.',
+  parkingNote: '주차 안내는 공개 버전에서 단순화되어 있습니다.',
   lockNote: null,
-  checkIn: 'Check-in after 4:00 PM',
-  checkOut: 'Check-out before 11:00 AM',
-  wifiNetwork: null,
-  wifiPassword: null,
+  checkIn: '체크인 오후 3시 이후',
+  checkOut: '체크아웃 오전 11시 이전',
+  wifiNetwork: 'Wyliehouse_jeju',
+  wifiPassword: 'Wylie0102!',
   hostName: null,
   coHostName: null,
-  guestSummary: null,
+  guestSummary: '1층 2명 / 2층 4명 수용. 3가족 총 9명 기준 배정.',
   confirmationCode: null,
-  vehicleFee: 'Community access details withheld',
+  vehicleFee: '렌터카 별도 운영. 공항 픽업 후 각 가족 이동.',
   externalUrl: null,
   manualUrl: null,
   photos: [
@@ -130,17 +130,17 @@ const PUBLIC_BASECAMP = {
 }
 
 const PUBLIC_STAY_SUMMARIES = {
-  'stay-basecamp': 'Basecamp operations run through the public Groveland-area staging house.',
-  'stay-gate-access': 'Arrival logistics are intentionally generalized in the public version.',
-  'stay-room-assignments': 'Sleeping assignments are intentionally generalized in the public version.',
-  'stay-beach-parking': 'Parking guidance is intentionally simplified in the public version.',
+  'stay-basecamp': '와일리제주를 거점으로 전 가족 입주·정착·출발 운영.',
+  'stay-gate-access': '입주 절차는 공개 버전에서 일반화되어 있습니다.',
+  'stay-room-assignments': '1층 2명 / 2층 4명. 방 배정은 공개 버전에서 일반화되어 있습니다.',
+  'stay-beach-parking': '렌터카 주차 안내는 공개 버전에서 단순화되어 있습니다.',
 }
 
 const PUBLIC_STAY_NOTES = {
-  'stay-basecamp': 'Arrival details are intentionally kept high level in the public version.',
-  'stay-gate-access': 'Specific gate and entry instructions are not published.',
-  'stay-room-assignments': 'Family-specific room assignments are not published.',
-  'stay-beach-parking': 'Vehicle planning remains intentionally generalized.',
+  'stay-basecamp': '도착 안내는 공개 버전에서 개략적으로만 유지됩니다.',
+  'stay-gate-access': '구체적인 출입 안내는 공개되지 않습니다.',
+  'stay-room-assignments': '가족별 방 배정은 공개되지 않습니다.',
+  'stay-beach-parking': '차량 계획은 공개 버전에서 일반화되어 있습니다.',
 }
 
 const PUBLIC_EXPENSE_PAYER = 'Shared'
@@ -208,6 +208,11 @@ const DAY_NAME_TO_ID = {
   Friday: 'fri',
   Saturday: 'sat',
   Sunday: 'sun',
+  목요일: 'thu',
+  금요일: 'fri',
+  토요일: 'thu',
+  일요일: 'fri',
+  월요일: 'sat',
 }
 
 const LEGACY_FAMILY_TASKS = {
@@ -229,6 +234,83 @@ const LEGACY_FAMILY_TASKS = {
     'yosemite-daypack': 'task-yosemite-daypacks',
     'park-pass': 'task-park-docs',
   },
+}
+
+function createDefaultTripMeta() {
+  return {
+    title: TRIP_META.title,
+    subtitle: TRIP_META.subtitle,
+    commandName: TRIP_META.commandName,
+  }
+}
+
+function toNonNegativeInteger(value, fallback = 0) {
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback
+}
+
+function parseHeadcountParts(headcount) {
+  if (typeof headcount !== 'string') return { adults: null, children: null }
+  const numbers = headcount.match(/\d+/g)?.map((item) => Number.parseInt(item, 10)) || []
+
+  return {
+    adults: Number.isFinite(numbers[0]) ? numbers[0] : null,
+    children: Number.isFinite(numbers[1]) ? numbers[1] : null,
+  }
+}
+
+export function formatFamilyHeadcount({ adults = 0, children = 0 } = {}) {
+  const safeAdults = Math.max(Number.parseInt(adults, 10) || 0, 0)
+  const safeChildren = Math.max(Number.parseInt(children, 10) || 0, 0)
+  const adultLabel = safeAdults === 1 ? '1 adult' : `${safeAdults} adults`
+  const childLabel = safeChildren === 1 ? '1 child' : `${safeChildren} children`
+
+  if (safeChildren <= 0) return adultLabel
+  if (safeAdults <= 0) return childLabel
+  return `${adultLabel} / ${childLabel}`
+}
+
+function normalizeFamilyRecord(family, fallback = {}) {
+  const seed = fallback || {}
+  const parsedHeadcount = parseHeadcountParts(family?.headcount || seed?.headcount)
+  const adults = toNonNegativeInteger(
+    family?.adults,
+    parsedHeadcount.adults ?? toNonNegativeInteger(seed?.adults, 0),
+  )
+  const children = toNonNegativeInteger(
+    family?.children,
+    parsedHeadcount.children ?? toNonNegativeInteger(seed?.children, 0),
+  )
+  const title = family?.title || family?.name || seed?.title || seed?.name || 'New family'
+  const origin = family?.origin || seed?.origin || ''
+
+  return {
+    ...seed,
+    ...family,
+    type: 'family',
+    title,
+    name: family?.name || title,
+    shortOrigin: family?.shortOrigin || seed?.shortOrigin || origin,
+    origin,
+    adults,
+    children,
+    headcount: formatFamilyHeadcount({ adults, children }),
+    plannedStopIds: Array.isArray(family?.plannedStopIds)
+      ? family.plannedStopIds
+      : Array.isArray(seed?.plannedStopIds)
+        ? seed.plannedStopIds
+        : [],
+    taskIds: Array.isArray(family?.taskIds)
+      ? family.taskIds
+      : Array.isArray(seed?.taskIds)
+        ? seed.taskIds
+        : [],
+    linkedEntityKeys: Array.isArray(family?.linkedEntityKeys)
+      ? family.linkedEntityKeys
+      : Array.isArray(seed?.linkedEntityKeys)
+        ? seed.linkedEntityKeys
+        : [],
+  }
 }
 
 export function makeEntityKey(type, id) {
@@ -358,7 +440,7 @@ function buildLocations() {
       address: TRIP_META.airbnb.location,
       coordinates: PUBLIC_BASECAMP.coordinates,
       externalUrl: MAPS_LINKS.airbnb,
-      summary: 'Basecamp for the entire operation. Gate access, parking, room assignments, and reset logistics all run through here.',
+      summary: '전체 운영 거점. 출입, 주차, 방 배정, 정착 물류 모두 여기서 진행.',
       parkingNote: TRIP_META.airbnb.parkingNote,
       accessNote: TRIP_META.airbnb.gateNote,
       directionsNote: TRIP_META.airbnb.directionsNote,
@@ -384,15 +466,15 @@ function buildLocations() {
     {
       id: 'north-star-kettleman-lunch',
       type: 'location',
-      title: 'Bravo Farms',
+      title: '제주공항 픽업 포인트',
       category: 'logistics',
       dayId: 'thu',
-      stopType: 'Lunch stop',
-      placesQuery: 'Bravo Farms Kettleman City CA',
-      address: '19950 Bernard Dr, Kettleman City, CA 93239',
-      coordinates: { lat: 35.9934, lng: -119.9617 },
-      externalUrl: 'https://www.google.com/maps/search/?api=1&query=Bravo+Farms+Kettleman+City',
-      summary: 'Good halfway lunch + restroom + leg-stretch stop on the LA inbound drive.',
+      stopType: '공항 픽업',
+      placesQuery: '제주국제공항',
+      address: '제주특별자치도 제주시 공항로 2',
+      coordinates: { lat: 33.5065, lng: 126.4934 },
+      externalUrl: 'https://www.google.com/maps/search/?api=1&query=제주국제공항',
+      summary: '이씨·김씨 가족 제주공항 도착. 렌터카 픽업 후 와일리제주로 이동.',
       linkedEntityKeys: [
         makeEntityKey('family', 'north-star'),
         makeEntityKey('itineraryItem', 'north-star-drive'),
@@ -402,16 +484,15 @@ function buildLocations() {
     {
       id: 'north-star-oakdale-break',
       type: 'location',
-      title: 'Oakdale Cheese & Specialties',
+      title: '제주공항 도착 허브',
       category: 'logistics',
       dayId: 'thu',
-      stopType: 'Lunch + reset stop',
-      placesQuery: 'Oakdale Cheese & Specialties Oakdale CA',
-      address: '10040 CA-120, Oakdale, CA 95361',
-      coordinates: { lat: 37.7975, lng: -120.8108 },
-      externalUrl: 'https://www.google.com/maps/search/?api=1&query=Oakdale+Cheese+%26+Specialties',
-      summary:
-        'Strong shared stop on the Highway 120 approach: grilled cheese, picnic tables, animal pens, bathrooms, and enough room for the kids to reset before the final leg.',
+      stopType: '공항 집결',
+      placesQuery: '제주국제공항',
+      address: '제주특별자치도 제주시 공항로 2',
+      coordinates: { lat: 33.5065, lng: 126.4934 },
+      externalUrl: 'https://www.google.com/maps/search/?api=1&query=제주국제공항',
+      summary: '전 가족 제주공항 집결. 렌터카 픽업 및 와일리제주 이동 출발 기점.',
       linkedEntityKeys: [
         makeEntityKey('family', 'north-star'),
         makeEntityKey('family', 'silver-peak'),
@@ -423,88 +504,88 @@ function buildLocations() {
     {
       id: 'grill-pml',
       type: 'location',
-      title: 'The Grill at Pine Mountain Lake',
+      title: '협재 해녀의 집',
       category: 'meal',
-      dayId: 'all',
-      placesQuery: 'The Grill at Pine Mountain Lake Groveland CA',
-      address: 'Pine Mountain Lake Country Club, Groveland, CA',
-      coordinates: { lat: 37.8578, lng: -120.2004 },
+      dayId: 'fri',
+      placesQuery: '협재 해녀의집 제주',
+      address: '제주시 한림읍 협재리 협재해수욕장 인근',
+      coordinates: { lat: 33.394, lng: 126.239 },
       externalUrl: MAPS_LINKS.grill,
-      summary: 'Primary on-property restaurant. Useful for the lighter Friday lunch outing without leaving Pine Mountain Lake.',
-      reservationNote: 'Friday lunch remains flexible.',
+      summary: '일요일 점심. 협재해수욕장 인근 해녀 식당. 성게국수·전복죽으로 제주 맛 체험.',
+      reservationNote: '현장 방문. 성수기 대기 가능.',
       photos: LOCATION_MEDIA['grill-pml'],
       linkedEntityKeys: [makeEntityKey('meal', 'fri-lunch')],
     },
     {
       id: 'two-guys-pizza',
       type: 'location',
-      title: 'Two Guys Pizza Pies',
+      title: '제주 흑돼지 구이',
       category: 'meal',
-      dayId: 'thu',
-      placesQuery: 'Two Guys Pizza Pies Groveland CA',
-      address: '18955 Ferretti Rd, Groveland, CA 95321',
-      coordinates: { lat: 37.842208, lng: -120.2243368 },
+      dayId: 'fri',
+      placesQuery: '제주 흑돼지 애월',
+      address: '제주시 애월읍 인근 흑돼지 전문점',
+      coordinates: { lat: 33.4647, lng: 126.3092 },
       externalUrl: MAPS_LINKS.twoGuys,
-      summary: 'Easy first-night pizza dinner stop in Groveland. Simple menu, low-friction seating, and a short drive from basecamp.',
-      reservationNote: 'Plan for a simple one-hour first-night dinner around 6:00 PM.',
+      summary: '일요일 저녁 제주 흑돼지 구이. 제주 여행 필수 코스. 애월읍 인근 예약 필요.',
+      reservationNote: '광복절 연휴 성수기 예약 필수.',
       photos: LOCATION_MEDIA['two-guys-pizza'],
       linkedEntityKeys: [makeEntityKey('meal', 'thu-dinner')],
     },
     {
       id: 'mountain-room',
       type: 'location',
-      title: 'The Mountain Room',
-      category: 'meal',
+      title: '한림공원',
+      category: 'activity',
       dayId: 'fri',
-      placesQuery: 'The Mountain Room Yosemite Valley CA',
-      address: 'Yosemite Valley Lodge area, Yosemite National Park',
-      coordinates: { lat: 37.7486, lng: -119.5887 },
+      placesQuery: '한림공원 제주',
+      address: '제주시 한림읍 한림로 300',
+      coordinates: { lat: 33.404, lng: 126.247 },
       externalUrl: MAPS_LINKS.mountainRoom,
-      summary: 'Legacy Yosemite dining option kept for reference only. Not part of the active trip plan.',
-      reservationNote: 'No active reservation in the current plan.',
+      summary: '협재해수욕장 인근 한림공원. 아이들 친화 관광지. 협재와 함께 일요일 코스.',
+      reservationNote: '유료 입장. 현장 구매.',
       photos: LOCATION_MEDIA['mountain-room'],
       linkedEntityKeys: [],
     },
     {
       id: 'priest-station',
       type: 'location',
-      title: 'Priest Station Cafe',
-      category: 'meal',
-      dayId: 'sat',
-      placesQuery: 'Priest Station Cafe Groveland CA',
-      address: 'Old Priest Grade Rd, Groveland, CA',
-      coordinates: { lat: 37.8188, lng: -120.0096 },
+      title: '협재해수욕장',
+      category: 'activity',
+      dayId: 'fri',
+      placesQuery: '협재해수욕장 제주',
+      address: '제주시 한림읍 협재리',
+      coordinates: { lat: 33.394, lng: 126.239 },
       externalUrl: MAPS_LINKS.priestStation,
-      summary: 'Fallback roadside stop kept for reference, but Saturday now assumes a packed lunch in Yosemite and dinner closer to Groveland on the return.',
-      reservationNote: 'No active stop in the current plan.',
+      summary: '에메랄드빛 제주 서쪽 해변. 아이 친화, 수심 얕음. 일요일 메인 활동 거점.',
+      reservationNote: '무료 입장. 성수기 주차 혼잡 주의.',
       photos: LOCATION_MEDIA['priest-station'],
       linkedEntityKeys: [],
     },
     {
       id: 'around-horn',
       type: 'location',
-      title: 'Around The Horn Brewing Company',
-      category: 'meal',
-      dayId: 'sat',
-      placesQuery: 'Around The Horn Brewing Company Groveland CA',
-      address: '17820 CA-120, Groveland, CA 95321',
-      coordinates: { lat: 37.8387, lng: -120.2274 },
+      title: '애월 카페거리',
+      category: 'logistics',
+      dayId: 'fri',
+      placesQuery: '애월 카페거리 제주',
+      address: '제주시 애월읍 애월해안로',
+      coordinates: { lat: 33.4647, lng: 126.3092 },
       externalUrl: MAPS_LINKS.aroundHorn,
-      summary: 'Best return-drive dinner stop after Yosemite. Right on the Groveland / Highway 120 line before the final short leg back to Pine Mountain Lake.',
-      reservationNote: 'Walk-in dinner stop on the way back from Yosemite.',
+      summary: '와일리제주 인근 해안 카페거리. 저녁 식사 후 산책 또는 음료 타임.',
+      reservationNote: '현장 방문.',
       photos: LOCATION_MEDIA['around-horn'],
       linkedEntityKeys: [makeEntityKey('meal', 'sat-dinner')],
     },
     {
       id: 'pine-lake-beach',
       type: 'location',
-      title: 'Pine Mountain Lake Beach',
+      title: '협재해수욕장',
       category: 'activity',
       dayId: 'fri',
-      address: 'Pine Mountain Lake Marina Beach area',
-      coordinates: { lat: 37.8604, lng: -120.2019 },
-      externalUrl: 'https://www.google.com/maps/search/?api=1&query=Pine+Mountain+Lake+Beach',
-      summary: 'Friday low-logistics activity zone. Flexible, kid-friendly, and close to basecamp.',
+      address: '제주시 한림읍 협재리',
+      coordinates: { lat: 33.394, lng: 126.239 },
+      externalUrl: 'https://www.google.com/maps/search/?api=1&query=협재해수욕장+제주',
+      summary: '일요일 메인 활동 구역. 에메랄드빛 제주 서쪽 해변. 아이 친화, 수심 얕음.',
       photos: LOCATION_MEDIA['pine-airbnb'],
       linkedEntityKeys: [
         makeEntityKey('activity', 'fri-lake'),
@@ -514,43 +595,43 @@ function buildLocations() {
     {
       id: 'yosemite',
       type: 'location',
-      title: 'Big Oak Flat Entrance',
-      category: 'park',
-      dayId: 'sat',
-      placesQuery: 'Big Oak Flat Entrance Yosemite National Park CA',
-      address: 'Big Oak Flat Rd, Yosemite National Park, CA 95321',
-      coordinates: { lat: 37.8108, lng: -119.8744 },
+      title: '협재해수욕장 & 한림공원',
+      category: 'activity',
+      dayId: 'fri',
+      placesQuery: '협재해수욕장 제주',
+      address: '제주시 한림읍 협재리',
+      coordinates: { lat: 33.394, lng: 126.239 },
       externalUrl: MAPS_LINKS.yosemite,
-      summary: 'Primary Saturday route anchor. Using the west entrance keeps park access, traffic watch, and drive planning grounded in a real checkpoint.',
+      summary: '일요일 메인 앵커. 협재해수욕장 + 한림공원. 아이 친화 최적 코스.',
       photos: LOCATION_MEDIA.yosemite,
       linkedEntityKeys: [
-        makeEntityKey('activity', 'sat-yosemite'),
-        makeEntityKey('itineraryItem', 'sat-yosemite'),
+        makeEntityKey('activity', 'fri-lake'),
+        makeEntityKey('itineraryItem', 'fri-lake'),
       ],
     },
     {
       id: 'big-oak-flat',
       type: 'location',
-      title: 'Big Oak Flat Entrance',
-      category: 'park',
-      dayId: 'sat',
-      address: 'Big Oak Flat Rd entrance checkpoint',
-      coordinates: { lat: 37.8108, lng: -119.8744 },
-      externalUrl: 'https://www.google.com/maps/search/?api=1&query=Big+Oak+Flat+Entrance',
-      summary: 'Useful checkpoint for Saturday traffic and park-entry readiness.',
-      linkedEntityKeys: [makeEntityKey('activity', 'sat-yosemite')],
+      title: '한림공원 입구',
+      category: 'activity',
+      dayId: 'fri',
+      address: '제주시 한림읍 한림로 300',
+      coordinates: { lat: 33.404, lng: 126.247 },
+      externalUrl: 'https://www.google.com/maps/search/?api=1&query=한림공원+제주',
+      summary: '협재해수욕장과 세트로 운영. 아이들 용암동굴·식물원 체험.',
+      linkedEntityKeys: [makeEntityKey('activity', 'fri-lake')],
       photos: LOCATION_MEDIA.yosemite,
     },
     {
       id: 'groveland-grocery',
       type: 'location',
-      title: 'Groveland Grocery',
+      title: '애월 이마트 / 마트',
       category: 'logistics',
-      dayId: 'fri',
-      address: 'Groveland, CA',
-      coordinates: { lat: 37.8381, lng: -120.2302 },
-      externalUrl: 'https://www.google.com/maps/search/?api=1&query=Groveland+Grocery',
-      summary: 'Best final restock point before lake day and cook-in meals.',
+      dayId: 'thu',
+      address: '제주시 애월읍 인근',
+      coordinates: { lat: 33.456, lng: 126.341 },
+      externalUrl: 'https://www.google.com/maps/search/?api=1&query=애월+마트+제주',
+      summary: '체크인 직후 또는 일요일 당일 마지막 식재료 보충 정차.',
       linkedEntityKeys: [
         makeEntityKey('itineraryItem', 'groceries'),
         makeEntityKey('task', 'task-grocery-run'),
@@ -560,13 +641,13 @@ function buildLocations() {
     {
       id: 'groveland-fuel',
       type: 'location',
-      title: 'Groveland Fuel Stop',
+      title: '제주공항 렌터카 반납',
       category: 'logistics',
-      dayId: 'thu',
-      address: 'Groveland, CA',
-      coordinates: { lat: 37.8396, lng: -120.2314 },
-      externalUrl: 'https://www.google.com/maps/search/?api=1&query=Groveland+Gas',
-      summary: 'Last easy logistics stop before final basecamp arrival.',
+      dayId: 'sat',
+      address: '제주시 공항로 2 제주국제공항',
+      coordinates: { lat: 33.5065, lng: 126.4934 },
+      externalUrl: 'https://www.google.com/maps/search/?api=1&query=제주국제공항',
+      summary: '월요일 귀가 시 렌터카 반납 및 탑승 수속.',
       linkedEntityKeys: [
         makeEntityKey('family', 'north-star'),
         makeEntityKey('family', 'silver-peak'),
@@ -578,26 +659,32 @@ function buildLocations() {
 }
 
 function buildFamilies() {
+  return []
+}
+
+function buildFamilies_SAMPLE_BACKUP() {
   return [
     {
       id: 'north-star',
       type: 'family',
-      title: 'Parkers',
-      name: 'Parkers',
-      shortOrigin: 'LA',
-      origin: 'Los Angeles',
-      originAddress: '2800 E Observatory Rd, Los Angeles, CA 90027',
-      originCoordinates: { lat: 34.1184, lng: -118.3004 },
+      title: '이씨 가족',
+      name: '이씨 가족',
+      shortOrigin: '수원',
+      origin: '수원',
+      originAddress: '경기도 수원시 팔달구 인계동',
+      originCoordinates: { lat: 37.2636, lng: 127.0286 },
       arrivalDayId: 'thu',
-      eta: 'Thu 4:00 PM',
-      driveTime: '5.5 hrs',
-      headcount: '2 adults, 1 kid',
-      vehicle: 'SUV',
-      vehicleLabel: 'Vehicle 1',
-      responsibility: 'Firewood + snacks',
+      adults: 2,
+      children: 1,
+      eta: '토 오후 2시',
+      driveTime: '약 1시간 (비행)',
+      headcount: '어른 2명, 아이 1명',
+      vehicle: '렌터카',
+      vehicleLabel: '렌터카 1',
+      responsibility: '간식 + 아이 짐',
       readiness: 82,
-      status: 'Transit',
-      routeSummary: 'Plan lunch in Kettleman City and a final light break in Oakdale before the last mountain leg into Pine Mountain Lake.',
+      status: '이동 중',
+      routeSummary: '수원 → 김포공항 → 제주공항 → 와일리제주.',
       plannedStopIds: ['north-star-kettleman-lunch', 'north-star-oakdale-break'],
       taskIds: ['task-car-pack', 'task-kid-bag', 'task-road-snacks', 'task-firewood'],
       linkedEntityKeys: [
@@ -606,27 +693,29 @@ function buildFamilies() {
         makeEntityKey('location', 'north-star-kettleman-lunch'),
         makeEntityKey('location', 'north-star-oakdale-break'),
       ],
-      note: 'Lead family for Thursday arrival setup and first-night basecamp opening.',
+      note: '토요일 도착 리드 가족. 첫날 와일리제주 오픈 담당.',
     },
     {
       id: 'silver-peak',
       type: 'family',
-      title: 'Jiangs',
-      name: 'Jiangs',
-      shortOrigin: 'SF',
-      origin: 'San Francisco',
-      originAddress: '1 Ferry Building, San Francisco, CA 94111',
-      originCoordinates: { lat: 37.7955, lng: -122.3937 },
+      title: '김씨 가족',
+      name: '김씨 가족',
+      shortOrigin: '서울',
+      origin: '서울',
+      originAddress: '서울특별시 중구 을지로',
+      originCoordinates: { lat: 37.5583, lng: 126.7906 },
       arrivalDayId: 'thu',
-      eta: 'Thu 4:00 PM',
-      driveTime: '3.5 hrs',
-      headcount: '2 adults, 1 kid',
-      vehicle: 'SUV',
-      vehicleLabel: 'Vehicle 2',
-      responsibility: 'Coolers + breakfast fruit',
+      adults: 2,
+      children: 1,
+      eta: '토 오후 2시',
+      driveTime: '약 1시간 (비행)',
+      headcount: '어른 2명, 아이 1명',
+      vehicle: '렌터카',
+      vehicleLabel: '렌터카 2',
+      responsibility: '아이스박스 + 아침 과일',
       readiness: 88,
-      status: 'Transit',
-      routeSummary: 'Plan a quick Oakdale Cheese reset stop before the final push into Pine Mountain Lake.',
+      status: '이동 중',
+      routeSummary: '서울 → 김포공항 → 제주공항 → 와일리제주.',
       plannedStopIds: ['north-star-oakdale-break'],
       taskIds: ['task-lake-gear', 'task-breakfast-fruit', 'task-kids-shoes', 'task-charger'],
       linkedEntityKeys: [
@@ -634,27 +723,29 @@ function buildFamilies() {
         makeEntityKey('meal', 'fri-breakfast'),
         makeEntityKey('location', 'north-star-oakdale-break'),
       ],
-      note: 'Strongest readiness posture. Good fallback family for floating support tasks.',
+      note: '준비 상태 최상. 제주 협재 코스 유동 지원 역할.',
     },
     {
       id: 'desert-bloom',
       type: 'family',
-      title: 'Riveras',
-      name: 'Riveras',
-      shortOrigin: 'RN',
-      origin: 'Reno',
-      originAddress: '10 N Virginia St, Reno, NV 89501',
-      originCoordinates: { lat: 39.5296, lng: -119.8138 },
-      arrivalDayId: 'fri',
-      eta: 'Fri 1:00 PM',
-      driveTime: '5 hrs',
-      headcount: '2 adults, 1 kid',
-      vehicle: 'SUV',
-      vehicleLabel: 'Vehicle 3',
-      responsibility: 'Grill kit + Saturday lunch',
+      title: '박씨 가족',
+      name: '박씨 가족',
+      shortOrigin: '대전',
+      origin: '대전',
+      originAddress: '대전광역시 서구 둔산동',
+      originCoordinates: { lat: 36.7166, lng: 127.499 },
+      arrivalDayId: 'thu',
+      adults: 2,
+      children: 1,
+      eta: '토 오후 4시',
+      driveTime: '약 1시간 (비행)',
+      headcount: '어른 2명, 아이 1명',
+      vehicle: '렌터카',
+      vehicleLabel: '렌터카 3',
+      responsibility: '바베큐 장비 + 일요일 점심',
       readiness: 71,
-      status: 'Friday Arrival',
-      routeSummary: 'Friday arrival push from Reno straight into Pine Mountain Lake.',
+      status: '금요일 합류',
+      routeSummary: '대전 → 청주공항 → 제주공항 → 와일리제주.',
       plannedStopIds: [],
       taskIds: ['task-late-arrival', 'task-grill-kit', 'task-yosemite-daypacks', 'task-park-docs'],
       linkedEntityKeys: [
@@ -662,7 +753,7 @@ function buildFamilies() {
         makeEntityKey('meal', 'sat-lunch'),
         makeEntityKey('meal', 'sat-dinner'),
       ],
-      note: 'Friday arrival handoff is the main coordination wrinkle for the trip.',
+      note: '토요일 늦은 도착. 광복절 연휴 청주공항 혼잡 대비.',
     },
   ]
 }
@@ -672,7 +763,7 @@ function buildItineraryItems() {
     {
       id: 'north-star-drive',
       type: 'itineraryItem',
-      title: 'Parkers drive',
+      title: '이씨 가족 이동',
       rowId: 'travel',
       dayId: 'thu',
       startSlot: 1.75,
@@ -692,7 +783,7 @@ function buildItineraryItems() {
     {
       id: 'silver-peak-drive',
       type: 'itineraryItem',
-      title: 'Jiangs drive',
+      title: '김씨 가족 이동',
       rowId: 'travel',
       dayId: 'thu',
       startSlot: 2.09,
@@ -711,7 +802,7 @@ function buildItineraryItems() {
     {
       id: 'desert-bloom-drive',
       type: 'itineraryItem',
-      title: 'Riveras drive',
+      title: '박씨 가족 이동',
       rowId: 'travel',
       dayId: 'fri',
       startSlot: 5.33,
@@ -1493,7 +1584,7 @@ function buildTasks() {
     {
       id: 'task-car-pack',
       type: 'task',
-      title: 'Car packed night before',
+      title: '출발 전날 짐 패킹 완료',
       dayId: 'thu',
       status: 'done',
       ownerFamilyId: 'north-star',
@@ -1506,7 +1597,7 @@ function buildTasks() {
     {
       id: 'task-kid-bag',
       type: 'task',
-      title: 'Kid activity bag loaded',
+      title: '아이 놀이 가방 준비',
       dayId: 'thu',
       status: 'done',
       ownerFamilyId: 'north-star',
@@ -1519,7 +1610,7 @@ function buildTasks() {
     {
       id: 'task-road-snacks',
       type: 'task',
-      title: 'Road snacks secured',
+      title: '차량 간식 확보',
       dayId: 'thu',
       status: 'open',
       ownerFamilyId: 'north-star',
@@ -1532,7 +1623,7 @@ function buildTasks() {
     {
       id: 'task-firewood',
       type: 'task',
-      title: 'Pickup firewood on arrival',
+      title: '도착 후 장작 구입',
       dayId: 'thu',
       status: 'open',
       ownerFamilyId: 'north-star',
@@ -1545,7 +1636,7 @@ function buildTasks() {
     {
       id: 'task-lake-gear',
       type: 'task',
-      title: 'Lake towels and floaties',
+      title: '해변 타월 & 튜브 준비',
       dayId: 'fri',
       status: 'done',
       ownerFamilyId: 'silver-peak',
@@ -1558,7 +1649,7 @@ function buildTasks() {
     {
       id: 'task-breakfast-fruit',
       type: 'task',
-      title: 'Breakfast fruit packed',
+      title: '아침 과일 챙김',
       dayId: 'fri',
       status: 'done',
       ownerFamilyId: 'silver-peak',
@@ -1571,7 +1662,7 @@ function buildTasks() {
     {
       id: 'task-kids-shoes',
       type: 'task',
-      title: 'Backup shoes for kid',
+      title: '아이 여분 신발',
       dayId: 'fri',
       status: 'open',
       ownerFamilyId: 'silver-peak',
@@ -1584,7 +1675,7 @@ function buildTasks() {
     {
       id: 'task-charger',
       type: 'task',
-      title: 'Portable charger packed',
+      title: '보조배터리 준비',
       dayId: 'thu',
       status: 'done',
       ownerFamilyId: 'silver-peak',
@@ -1597,7 +1688,7 @@ function buildTasks() {
     {
       id: 'task-late-arrival',
       type: 'task',
-      title: 'Friday arrival window confirmed',
+      title: '금요일 합류 일정 확정',
       dayId: 'fri',
       status: 'done',
       ownerFamilyId: 'desert-bloom',
@@ -1611,7 +1702,7 @@ function buildTasks() {
     {
       id: 'task-grill-kit',
       type: 'task',
-      title: 'Saturday dinner stop checked',
+      title: '바베큐 장비 패킹',
       dayId: 'sat',
       status: 'open',
       ownerFamilyId: 'desert-bloom',
@@ -1624,7 +1715,7 @@ function buildTasks() {
     {
       id: 'task-yosemite-daypacks',
       type: 'task',
-      title: 'Yosemite daypacks staged',
+      title: '협재해수욕장 당일 준비 (물놀이 용품)',
       dayId: 'fri',
       status: 'open',
       ownerFamilyId: 'desert-bloom',
@@ -1637,7 +1728,7 @@ function buildTasks() {
     {
       id: 'task-park-docs',
       type: 'task',
-      title: 'Park entry docs confirmed',
+      title: '국립공원 입장 서류 확인',
       dayId: 'sat',
       status: 'done',
       ownerFamilyId: 'desert-bloom',
@@ -1650,7 +1741,7 @@ function buildTasks() {
     {
       id: 'task-gate-access',
       type: 'task',
-      title: 'Confirm gate access and arrival sequence',
+      title: '체크인 절차 및 도착 순서 확인',
       dayId: 'thu',
       status: 'open',
       ownerFamilyId: null,
@@ -1663,7 +1754,7 @@ function buildTasks() {
     {
       id: 'task-room-assignments',
       type: 'task',
-      title: 'Stage room assignments before first arrival',
+      title: '첫 가족 도착 전 방 배정 완료',
       dayId: 'thu',
       status: 'open',
       ownerFamilyId: null,
@@ -1676,7 +1767,7 @@ function buildTasks() {
     {
       id: 'task-grocery-run',
       type: 'task',
-      title: 'Friday grocery / restock run',
+      title: '금요일 식재료 & 보충 구매',
       dayId: 'fri',
       status: 'open',
       ownerFamilyId: null,
@@ -1691,7 +1782,7 @@ function buildTasks() {
     {
       id: 'task-pack-yosemite-bags',
       type: 'task',
-      title: 'Pre-pack Yosemite bags Friday night',
+      title: '토요일 귀가 전날 밤 짐 사전 준비',
       dayId: 'fri',
       status: 'open',
       ownerFamilyId: null,
@@ -1704,7 +1795,7 @@ function buildTasks() {
     {
       id: 'task-priest-station-plan',
       type: 'task',
-      title: 'Lock Saturday return dinner timing',
+      title: '토요일 귀환 저녁 식사 일정 확정',
       dayId: 'fri',
       status: 'open',
       ownerFamilyId: null,
@@ -1717,7 +1808,7 @@ function buildTasks() {
     {
       id: 'task-cabin-reset',
       type: 'task',
-      title: 'Pre-stage cabin reset before Sunday morning',
+      title: '일요일 아침 전 펜션 원상복구 사전 준비',
       dayId: 'sat',
       status: 'open',
       ownerFamilyId: null,
@@ -1735,11 +1826,11 @@ function buildRoutes() {
     {
       id: 'route-sf-silver-peak',
       type: 'route',
-      title: 'Jiangs inbound route',
+      title: '김씨 가족 이동 경로',
       dayId: 'thu',
       familyId: 'silver-peak',
       tone: 'critical',
-      originCoordinates: { lat: 37.7955, lng: -122.3937 },
+      originCoordinates: { lat: 37.5665, lng: 126.9780 },
       stopLocationIds: ['north-star-oakdale-break'],
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: 2.09,
@@ -1752,8 +1843,8 @@ function buildRoutes() {
         { t: 1, progress: 1 },
       ],
       path: [
-        { lat: 37.7636, lng: -122.4752 },
-        { lat: 37.7975, lng: -120.8108 },
+        { lat: 37.5583, lng: 126.7906 },
+        { lat: 33.5065, lng: 126.4934 },
         PUBLIC_BASECAMP_COORDINATES,
       ],
       linkedEntityKey: makeEntityKey('itineraryItem', 'silver-peak-drive'),
@@ -1761,12 +1852,12 @@ function buildRoutes() {
     {
       id: 'route-sf-desert-bloom',
       type: 'route',
-      title: 'Riveras inbound route',
+      title: '박씨 가족 이동 경로',
       dayId: 'fri',
       familyId: 'desert-bloom',
       tone: 'violet',
       dashed: true,
-      originCoordinates: { lat: 39.5296, lng: -119.8138 },
+      originCoordinates: { lat: 36.3504, lng: 127.3845 },
       stopLocationIds: [],
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: 5.33,
@@ -1778,7 +1869,8 @@ function buildRoutes() {
         { t: 1, progress: 1 },
       ],
       path: [
-        { lat: 39.5296, lng: -119.8138 },
+        { lat: 36.7166, lng: 127.499 },
+        { lat: 33.5065, lng: 126.4934 },
         PUBLIC_BASECAMP_COORDINATES,
       ],
       linkedEntityKey: makeEntityKey('itineraryItem', 'desert-bloom-drive'),
@@ -1786,11 +1878,11 @@ function buildRoutes() {
     {
       id: 'route-la-north-star',
       type: 'route',
-      title: 'Parkers inbound route',
+      title: '이씨 가족 이동 경로',
       dayId: 'thu',
       familyId: 'north-star',
       tone: 'warning',
-      originCoordinates: { lat: 34.1184, lng: -118.3004 },
+      originCoordinates: { lat: 37.2636, lng: 127.0286 },
       stopLocationIds: ['north-star-kettleman-lunch', 'north-star-oakdale-break'],
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: 1.75,
@@ -1807,9 +1899,8 @@ function buildRoutes() {
         { t: 1, progress: 1 },
       ],
       path: [
-        { lat: 34.0736, lng: -118.4004 },
-        { lat: 35.9934, lng: -119.9617 },
-        { lat: 37.7975, lng: -120.8108 },
+        { lat: 37.5583, lng: 126.7906 },
+        { lat: 33.5065, lng: 126.4934 },
         PUBLIC_BASECAMP_COORDINATES,
       ],
       linkedEntityKey: makeEntityKey('itineraryItem', 'north-star-drive'),
@@ -1817,7 +1908,7 @@ function buildRoutes() {
     {
       id: 'route-thu-grill-north-star',
       type: 'route',
-      title: 'Parkers to Two Guys Pizza Pies',
+      title: '이씨 가족 → 흑돼지 저녁',
       dayId: 'thu',
       familyId: 'north-star',
       tone: 'warning',
@@ -1830,7 +1921,7 @@ function buildRoutes() {
     {
       id: 'route-thu-grill-silver-peak',
       type: 'route',
-      title: 'Jiangs to Two Guys Pizza Pies',
+      title: '김씨 가족 → 흑돼지 저녁',
       dayId: 'thu',
       familyId: 'silver-peak',
       tone: 'critical',
@@ -1843,11 +1934,11 @@ function buildRoutes() {
     {
       id: 'route-thu-return-north-star',
       type: 'route',
-      title: 'Parkers return to basecamp',
+      title: '이씨 가족 베이스캠프 귀환',
       dayId: 'thu',
       familyId: 'north-star',
       tone: 'warning',
-      originCoordinates: { lat: 37.842208, lng: -120.2243368 },
+      originCoordinates: { lat: 33.464, lng: 126.309 },
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.thuDinnerReturn.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.thuDinnerReturn.endSlot,
@@ -1856,11 +1947,11 @@ function buildRoutes() {
     {
       id: 'route-thu-return-silver-peak',
       type: 'route',
-      title: 'Jiangs return to basecamp',
+      title: '김씨 가족 베이스캠프 귀환',
       dayId: 'thu',
       familyId: 'silver-peak',
       tone: 'critical',
-      originCoordinates: { lat: 37.842208, lng: -120.2243368 },
+      originCoordinates: { lat: 33.464, lng: 126.309 },
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.thuDinnerReturn.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.thuDinnerReturn.endSlot,
@@ -1869,7 +1960,7 @@ function buildRoutes() {
     {
       id: 'route-fri-beach-north-star',
       type: 'route',
-      title: 'Parkers lunch shuttle',
+      title: '이씨 가족 → 협재해수욕장',
       dayId: 'fri',
       familyId: 'north-star',
       tone: 'warning',
@@ -1882,7 +1973,7 @@ function buildRoutes() {
     {
       id: 'route-fri-beach-silver-peak',
       type: 'route',
-      title: 'Jiangs lunch shuttle',
+      title: '김씨 가족 → 협재해수욕장',
       dayId: 'fri',
       familyId: 'silver-peak',
       tone: 'critical',
@@ -1895,11 +1986,11 @@ function buildRoutes() {
     {
       id: 'route-fri-return-north-star',
       type: 'route',
-      title: 'Parkers return from lunch',
+      title: '이씨 가족 협재 후 귀환',
       dayId: 'fri',
       familyId: 'north-star',
       tone: 'warning',
-      originCoordinates: { lat: 37.8578, lng: -120.2004 },
+      originCoordinates: { lat: 33.394, lng: 126.239 },
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.friLunchReturn.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.friLunchReturn.endSlot,
@@ -1908,11 +1999,11 @@ function buildRoutes() {
     {
       id: 'route-fri-return-silver-peak',
       type: 'route',
-      title: 'Jiangs return from lunch',
+      title: '김씨 가족 협재 후 귀환',
       dayId: 'fri',
       familyId: 'silver-peak',
       tone: 'critical',
-      originCoordinates: { lat: 37.8578, lng: -120.2004 },
+      originCoordinates: { lat: 33.394, lng: 126.239 },
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.friLunchReturn.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.friLunchReturn.endSlot,
@@ -1921,7 +2012,7 @@ function buildRoutes() {
     {
       id: 'route-sat-yosemite-north-star',
       type: 'route',
-      title: 'Parkers to Yosemite',
+      title: '이씨 가족 → 협재해수욕장',
       dayId: 'sat',
       familyId: 'north-star',
       tone: 'warning',
@@ -1934,7 +2025,7 @@ function buildRoutes() {
     {
       id: 'route-sat-yosemite-silver-peak',
       type: 'route',
-      title: 'Jiangs to Yosemite',
+      title: '김씨 가족 → 협재해수욕장',
       dayId: 'sat',
       familyId: 'silver-peak',
       tone: 'critical',
@@ -1947,7 +2038,7 @@ function buildRoutes() {
     {
       id: 'route-sat-yosemite-desert-bloom',
       type: 'route',
-      title: 'Riveras to Yosemite',
+      title: '박씨 가족 → 협재해수욕장',
       dayId: 'sat',
       familyId: 'desert-bloom',
       tone: 'violet',
@@ -1960,11 +2051,11 @@ function buildRoutes() {
     {
       id: 'route-sat-priest-station-north-star',
       type: 'route',
-      title: 'Parkers to Around The Horn',
+      title: '이씨 가족 → 흑돼지 저녁',
       dayId: 'sat',
       familyId: 'north-star',
       tone: 'warning',
-      originCoordinates: { lat: 37.8108, lng: -119.8744 },
+      originCoordinates: { lat: 33.394, lng: 126.239 },
       destinationLocationId: 'around-horn',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.satDinner.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.satDinner.endSlot,
@@ -1973,11 +2064,11 @@ function buildRoutes() {
     {
       id: 'route-sat-priest-station-silver-peak',
       type: 'route',
-      title: 'Jiangs to Around The Horn',
+      title: '김씨 가족 → 흑돼지 저녁',
       dayId: 'sat',
       familyId: 'silver-peak',
       tone: 'critical',
-      originCoordinates: { lat: 37.8108, lng: -119.8744 },
+      originCoordinates: { lat: 33.394, lng: 126.239 },
       destinationLocationId: 'around-horn',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.satDinner.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.satDinner.endSlot,
@@ -1986,11 +2077,11 @@ function buildRoutes() {
     {
       id: 'route-sat-priest-station-desert-bloom',
       type: 'route',
-      title: 'Riveras to Around The Horn',
+      title: '박씨 가족 → 흑돼지 저녁',
       dayId: 'sat',
       familyId: 'desert-bloom',
       tone: 'violet',
-      originCoordinates: { lat: 37.8108, lng: -119.8744 },
+      originCoordinates: { lat: 33.394, lng: 126.239 },
       destinationLocationId: 'around-horn',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.satDinner.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.satDinner.endSlot,
@@ -1999,11 +2090,11 @@ function buildRoutes() {
     {
       id: 'route-sat-basecamp-return-north-star',
       type: 'route',
-      title: 'Parkers return to basecamp',
+      title: '이씨 가족 베이스캠프 귀환',
       dayId: 'sat',
       familyId: 'north-star',
       tone: 'warning',
-      originCoordinates: { lat: 37.8387, lng: -120.2274 },
+      originCoordinates: { lat: 33.4647, lng: 126.3092 },
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.satDinnerReturn.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.satDinnerReturn.endSlot,
@@ -2012,11 +2103,11 @@ function buildRoutes() {
     {
       id: 'route-sat-basecamp-return-silver-peak',
       type: 'route',
-      title: 'Jiangs return to basecamp',
+      title: '김씨 가족 베이스캠프 귀환',
       dayId: 'sat',
       familyId: 'silver-peak',
       tone: 'critical',
-      originCoordinates: { lat: 37.8387, lng: -120.2274 },
+      originCoordinates: { lat: 33.4647, lng: 126.3092 },
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.satDinnerReturn.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.satDinnerReturn.endSlot,
@@ -2025,11 +2116,11 @@ function buildRoutes() {
     {
       id: 'route-sat-basecamp-return-desert-bloom',
       type: 'route',
-      title: 'Riveras return to basecamp',
+      title: '박씨 가족 베이스캠프 귀환',
       dayId: 'sat',
       familyId: 'desert-bloom',
       tone: 'violet',
-      originCoordinates: { lat: 37.8387, lng: -120.2274 },
+      originCoordinates: { lat: 33.4647, lng: 126.3092 },
       destinationLocationId: 'pine-airbnb',
       simulationStartSlot: SHARED_CONVOY_WINDOWS.satDinnerReturn.startSlot,
       simulationEndSlot: SHARED_CONVOY_WINDOWS.satDinnerReturn.endSlot,
@@ -2038,54 +2129,51 @@ function buildRoutes() {
     {
       id: 'route-sun-home-north-star',
       type: 'route',
-      title: 'Parkers homebound',
-      dayId: 'sun',
+      title: '이씨 가족 귀가 (제주공항)',
+      dayId: 'sat',
       familyId: 'north-star',
       tone: 'warning',
       originCoordinates: PUBLIC_BASECAMP_COORDINATES,
       stopLocationIds: ['north-star-kettleman-lunch'],
-      simulationStartSlot: 14.02,
-      simulationEndSlot: 15.57,
+      simulationStartSlot: 11.0,
+      simulationEndSlot: 12.0,
       path: [
         PUBLIC_BASECAMP_COORDINATES,
-        { lat: 35.9934, lng: -119.9617 },
-        { lat: 34.0736, lng: -118.4004 },
+        { lat: 33.5065, lng: 126.4934 },
       ],
       linkedEntityKey: makeEntityKey('itineraryItem', 'north-star-homebound'),
     },
     {
       id: 'route-sun-home-silver-peak',
       type: 'route',
-      title: 'Jiangs homebound',
-      dayId: 'sun',
+      title: '김씨 가족 귀가 (제주공항)',
+      dayId: 'sat',
       familyId: 'silver-peak',
       tone: 'critical',
       originCoordinates: PUBLIC_BASECAMP_COORDINATES,
       stopLocationIds: ['north-star-oakdale-break'],
-      simulationStartSlot: 14.08,
-      simulationEndSlot: 15.43,
+      simulationStartSlot: 11.08,
+      simulationEndSlot: 12.08,
       path: [
         PUBLIC_BASECAMP_COORDINATES,
-        { lat: 37.7975, lng: -120.8108 },
-        { lat: 37.7636, lng: -122.4752 },
+        { lat: 33.5065, lng: 126.4934 },
       ],
       linkedEntityKey: makeEntityKey('itineraryItem', 'silver-peak-homebound'),
     },
     {
       id: 'route-sun-home-desert-bloom',
       type: 'route',
-      title: 'Riveras homebound',
-      dayId: 'sun',
+      title: '박씨 가족 귀가 (제주공항)',
+      dayId: 'sat',
       familyId: 'desert-bloom',
       tone: 'violet',
       originCoordinates: PUBLIC_BASECAMP_COORDINATES,
       stopLocationIds: ['north-star-oakdale-break'],
-      simulationStartSlot: 14.16,
-      simulationEndSlot: 15.46,
+      simulationStartSlot: 11.16,
+      simulationEndSlot: 12.16,
       path: [
         PUBLIC_BASECAMP_COORDINATES,
-        { lat: 37.7975, lng: -120.8108 },
-        { lat: 37.7963, lng: -122.4321 },
+        { lat: 33.5065, lng: 126.4934 },
       ],
       linkedEntityKey: makeEntityKey('itineraryItem', 'desert-bloom-homebound'),
     },
@@ -2094,15 +2182,17 @@ function buildRoutes() {
 
 export function createInitialTripDocument() {
   return {
+    schemaVersion: 5,
+    tripMeta: createDefaultTripMeta(),
     selectedPage: 'itinerary',
     selection: DEFAULT_SELECTION,
     pageNotes: {
-      itinerary: 'Mission priority: reduce Friday arrival chaos and make Saturday easy on the kids.',
-      stay: 'Need one clean arrival protocol so the first family is not doing all the setup work.',
-      meals: 'Thursday now uses an easy one-hour pizza dinner in Groveland, Friday is lunch out plus dinner at home, and Saturday uses a return-drive dinner stop instead of a deep park detour.',
-      activities: 'Yosemite is the headline day, but Friday should stay easy and Saturday should read as one clean outbound and one clean return.',
-      expenses: 'Keep this light. Shared visibility matters more than perfect accounting.',
-      families: 'Each family should know its task package before Thursday morning.',
+      itinerary: '최우선: 금요일 도착 혼잡 최소화, 토요일은 아이들이 편하게 즐길 수 있도록.',
+      stay: '첫 번째 가족이 모든 준비를 혼자 하지 않도록 도착 프로토콜을 명확히 정한다.',
+      meals: '토요일은 제주공항 인근 식사로 시작. 일요일은 협재 해녀의 집 점심 후 흑돼지 저녁. 월요일은 귀가 전 공항 근처 마지막 식사.',
+      activities: '협재해수욕장이 핵심 일정. 일요일은 한림공원과 협재해수욕장, 애월 카페거리까지 여유롭게.',
+      expenses: '간단하게 유지. 정확한 회계보다 공유 가시성이 더 중요하다.',
+      families: '각 가족은 목요일 아침 출발 전 자신의 역할 패키지를 숙지해야 한다.',
     },
     pageNoteMeta: {},
     ui: {
@@ -2119,7 +2209,7 @@ export function createInitialTripDocument() {
         focusDayId: 'all',
       },
     },
-    families: buildFamilies(),
+    families: buildFamilies().map((family) => normalizeFamilyRecord(family, family)),
     locations: buildLocations(),
     routes: synchronizeRoutePaths(buildRoutes(), buildLocations()),
     itineraryItems: buildItineraryItems(),
@@ -2154,6 +2244,10 @@ export function synchronizeRoutePaths(routes = [], locations = []) {
 export function migrateLegacyState(raw) {
   const doc = createInitialTripDocument()
   if (!raw || typeof raw !== 'object') return doc
+
+  if (raw.tripMeta && typeof raw.tripMeta === 'object') {
+    doc.tripMeta = { ...doc.tripMeta, ...raw.tripMeta }
+  }
 
   if (typeof raw.selectedPage === 'string') {
     doc.selectedPage = raw.selectedPage
@@ -2225,26 +2319,27 @@ export function migrateLegacyState(raw) {
     }
   }
 
+  doc.families = doc.families.map((family) => normalizeFamilyRecord(family, family))
+
   return doc
 }
 
-function refreshSeededCollection(existing = [], seeded = [], preserveFields = []) {
+function refreshSeededCollection(existing = [], seeded = [], options = {}) {
+  const { normalizeItem } = options
   const existingById = new Map(existing.map((item) => [item.id, item]))
+  const seededIds = new Set(seeded.map((item) => item.id))
 
-  return seeded.map((item) => {
+  const mergedSeeded = seeded.map((item) => {
     const current = existingById.get(item.id)
-    if (!current) return item
-
-    const preserved = preserveFields.reduce((acc, field) => {
-      if (current[field] !== undefined) acc[field] = current[field]
-      return acc
-    }, {})
-
-    return {
-      ...item,
-      ...preserved,
-    }
+    const merged = current ? { ...item, ...current } : item
+    return normalizeItem ? normalizeItem(merged, item) : merged
   })
+
+  const customItems = existing
+    .filter((item) => !seededIds.has(item.id))
+    .map((item) => (normalizeItem ? normalizeItem(item, null) : item))
+
+  return [...mergedSeeded, ...customItems]
 }
 
 function routeStructureMatches(currentRoute, seededRoute) {
@@ -2267,76 +2362,51 @@ function routeStructureMatches(currentRoute, seededRoute) {
 
 function refreshSeededDoc(doc) {
   const seeded = createInitialTripDocument()
-  const locations = refreshSeededCollection(doc.locations, seeded.locations, [
-    'note',
-    'lastEditedByFamilyId',
-    'lastEditedAt',
-    'title',
-    'placesQuery',
-    'placeId',
-    'address',
-    'coordinates',
-    'externalUrl',
-    'phoneNumber',
-    'websiteUrl',
-    'rating',
-    'userRatingsTotal',
-    'openingHours',
-    'livePhotos',
-    'basecampDrive',
-  ])
-
-  const currentRoutesById = new Map(doc.routes.map((route) => [route.id, route]))
-  const routes = seeded.routes.map((route) => {
-    const current = currentRoutesById.get(route.id)
-    if (!current) return route
-
-    const preserveLiveRouting = routeStructureMatches(current, route)
-
-    return {
-      ...route,
-      ...(preserveLiveRouting
-        ? {
-            path: current.path,
-            durationSeconds: current.durationSeconds,
-            durationText: current.durationText,
-            distanceMeters: current.distanceMeters,
-            distanceText: current.distanceText,
-          }
-        : {}),
-      note: current.note,
-      lastEditedByFamilyId: current.lastEditedByFamilyId,
-      lastEditedAt: current.lastEditedAt,
-    }
+  const families = refreshSeededCollection(doc.families, seeded.families, {
+    normalizeItem: normalizeFamilyRecord,
   })
+  const locations = refreshSeededCollection(doc.locations, seeded.locations)
+  const routes = refreshSeededCollection(doc.routes, seeded.routes)
+  const itineraryItems = refreshSeededCollection(doc.itineraryItems, seeded.itineraryItems)
+  const meals = refreshSeededCollection(doc.meals, seeded.meals)
+  const activities = refreshSeededCollection(doc.activities, seeded.activities)
+  const stayItems = refreshSeededCollection(doc.stayItems, seeded.stayItems)
+  const expenses = refreshSeededCollection(doc.expenses, seeded.expenses)
+  const tasks = refreshSeededCollection(doc.tasks, seeded.tasks)
 
   return {
+    ...seeded,
     ...doc,
-    families: refreshSeededCollection(doc.families, seeded.families, [
-      'readiness',
-      'status',
-      'responsibility',
-      'note',
-      'lastEditedByFamilyId',
-      'lastEditedAt',
-    ]),
+    schemaVersion: seeded.schemaVersion,
+    tripMeta: {
+      ...seeded.tripMeta,
+      ...(doc.tripMeta || {}),
+    },
+    pageNotes: {
+      ...seeded.pageNotes,
+      ...(doc.pageNotes || {}),
+    },
+    pageNoteMeta: doc.pageNoteMeta || {},
+    ui: {
+      ...seeded.ui,
+      ...(doc.ui || {}),
+      timeline: {
+        ...seeded.ui.timeline,
+        ...(doc.ui?.timeline || {}),
+      },
+      map: {
+        ...seeded.ui.map,
+        ...(doc.ui?.map || {}),
+      },
+    },
+    families,
     locations,
-    itineraryItems: refreshSeededCollection(doc.itineraryItems, seeded.itineraryItems),
-    stayItems: refreshSeededCollection(doc.stayItems, seeded.stayItems, ['note', 'lastEditedByFamilyId', 'lastEditedAt']),
-    expenses: refreshSeededCollection(doc.expenses, seeded.expenses, [
-      'title',
-      'payer',
-      'amount',
-      'split',
-      'settled',
-      'allocationMode',
-      'allocations',
-      'note',
-      'createdByFamilyId',
-      'createdAt',
-      'lastEditedByFamilyId',
-      'lastEditedAt',
-    ]),
+    itineraryItems,
+    meals,
+    activities,
+    stayItems,
+    expenses,
+    tasks,
     routes: synchronizeRoutePaths(routes, locations),
   }
 }
@@ -2349,6 +2419,7 @@ export function getInitialTripDocument() {
     if (rawCurrent) {
       const parsed = JSON.parse(rawCurrent)
       if (parsed?.locations && parsed?.selection) return refreshSeededDoc(parsed)
+      return refreshSeededDoc(migrateLegacyState(parsed))
     }
   } catch {
     return createInitialTripDocument()

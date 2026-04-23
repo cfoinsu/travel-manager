@@ -1,5 +1,5 @@
 export const PUBLISH_CONFIG = {
-  visibilityMode: 'public',
+  visibilityMode: 'private',
   liveExternalData: true,
 }
 

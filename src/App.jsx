@@ -5,6 +5,7 @@ import {
   CarFront,
   Cloud,
   CloudRain,
+  Database,
   Download,
   ExternalLink,
   Flag,
@@ -34,9 +35,12 @@ import { twMerge } from 'tailwind-merge'
 import palantirLogo from './assets/palantir-logo.svg'
 import CommandMap from './CommandMap'
 import InspectorRail from './InspectorRail'
+import { NotionSetupTutorial } from './NotionSetupTutorial'
+import { OnboardingGuide, OnboardingResetButton } from './OnboardingGuide'
+import { useNotionSync } from './useNotionSync'
 import { PUBLISH_CONFIG, isLiveExternalDataEnabled } from './publishConfig'
 import { usePersistedTripState } from './usePersistedTripState'
-import { DAYS, NAV_ITEMS, TIME_SLOTS, TRIP_META } from './tripData'
+import { DAYS, NAV_ITEMS, TIME_SLOTS } from './tripData'
 import {
   ENTITY_PAGE,
   ensureSelectionForPage,
@@ -46,6 +50,7 @@ import {
   getEntitySummary,
   getEntityTitle,
   getFamilyReadiness,
+  formatFamilyHeadcount,
   TRIP_DOCUMENT_STORAGE_KEY,
   VIEWER_PROFILE_STORAGE_KEY,
   clearLegacyTripStorage,
@@ -107,6 +112,13 @@ const STATUS_STYLES = {
   Settled: 'bg-[#3FB950]/18 text-[#3FB950]',
   Go: 'bg-[#3FB950]/18 text-[#3FB950]',
   Watch: 'bg-[#D29922]/18 text-[#D29922]',
+  '이동 중': 'bg-[#58A6FF]/18 text-[#58A6FF]',
+  '금요일 합류': 'bg-[#D29922]/18 text-[#D29922]',
+  '확정': 'bg-[#58A6FF]/18 text-[#58A6FF]',
+  '대기': 'bg-[#D29922]/18 text-[#D29922]',
+  '완료': 'bg-[#3FB950]/18 text-[#3FB950]',
+  '실행': 'bg-[#3FB950]/18 text-[#3FB950]',
+  '주의': 'bg-[#D29922]/18 text-[#D29922]',
 }
 
 const TIMELINE_COLORS = {
@@ -119,9 +131,9 @@ const TIMELINE_COLORS = {
 }
 
 const EXPENSE_SPLIT_LABELS = {
-  equal: 'Equal split',
-  manual: 'Manual allocation',
-  individual: 'Individual',
+  equal: '균등 분할',
+  manual: '수동 배분',
+  individual: '개별 부담',
 }
 
 const PLAYBACK_SPEED_OPTIONS = [1, 2, 3, 4]
@@ -216,56 +228,56 @@ const OBSOLETE_PLAN_ITINERARY_IDS = new Set([
 
 const DAY_BRIEFING_COPY = {
   thu: {
-    code: 'Insertion / Consolidation',
+    code: '이동 / 제주 집결',
     tone: 'Amber',
     summary:
-      'Thursday is about getting everyone in cleanly. The main threat is staggered arrival timing, road fatigue, and losing momentum before basecamp is fully online. Win condition: all families reach Pine Mountain Lake, get through the gate, settle basecamp, and keep dinner simple enough that nobody burns out on night one.',
+      '광복절 당일, 모든 가족이 비행기를 타고 제주에 무사히 도착하는 날입니다. 주요 리스크는 성수기 공항 혼잡, 렌터카 픽업 대기, 와일리제주 체크인 전 모멘텀 소실. 성공 기준: 전 가족 제주공항 도착, 렌터카 픽업 완료, 와일리제주 정착 후 흑돼지 저녁.',
     lookouts: [
-      'Protect arrival energy. Long-drive families should prioritize clean breaks over pushing nonstop.',
-      'Gate + check-in friction is the main avoidable failure point, so keep address, fee, and access details ready.',
-      'Do not over-schedule the evening. Dinner and reset are the operation.',
+      '광복절 연휴 공항은 극도로 혼잡. 출발 2시간 전 공항 도착을 원칙으로.',
+      '렌터카 픽업이 가장 피할 수 있는 병목. 업체 위치·예약 번호를 미리 확인.',
+      '저녁을 과도하게 계획하지 않는다. 흑돼지 저녁과 휴식이 이날의 임무.',
     ],
   },
   fri: {
-    code: 'Basecamp / Local Ops',
+    code: '협재해수욕장 & 한림공원',
     tone: 'Blue',
     summary:
-      'Friday is the stabilization day. Everyone is in theater, so the goal shifts from transit to rhythm: house setup, lake access, kid-friendly pacing, and preserving energy for the Yosemite push. Keep the day flexible and bias toward a low-friction, high-enjoyment tempo.',
+      '일요일은 제주 여행의 핵심 날. 협재 해녀의 집 점심, 한림공원 관람, 협재해수욕장에서 물놀이. 아이 친화적 페이스 유지가 핵심. 저녁은 흑돼지 구이로 마무리.',
     lookouts: [
-      'Parking, beach timing, and family split-ups can create unnecessary overhead if not lightly coordinated.',
-      'Use this day to test house logistics, meal flow, and what each family actually needs before Saturday.',
-      'Avoid turning the lake day into a checklist marathon. The point is to settle in.',
+      '성수기 협재 주차는 극히 혼잡. 오전 일찍 출발해 주차 확보 우선.',
+      '한림공원 → 협재 순서로 동선을 최적화. 아이들 체력 관리.',
+      '흑돼지 저녁 예약 필수. 광복절 연휴 성수기 노쇼 주의.',
     ],
   },
   sat: {
-    code: 'Yosemite Main Mission',
+    code: '귀가 / 마무리',
     tone: 'Red',
     summary:
-      'Saturday is the primary excursion and the highest-complexity day of the trip. This is the longest operating window with the most movement, the most dependency on traffic and timing, and the highest risk of decision fatigue. Win condition: enter Yosemite smoothly, pick a manageable plan, and preserve enough margin for a calm return and cookout evening.',
+      '월요일은 통제된 귀가입니다. 와일리제주 체크아웃, 렌터카 반납, 제주공항 출발이 목표. 아침이 여유로울수록 이번 여행 전체가 더 좋은 기억으로 남습니다.',
     lookouts: [
-      'Departure discipline matters more than itinerary ambition. Late starts compound quickly on Yosemite day.',
-      'Pick a realistic park scope and protect turnaround timing before everyone gets tired.',
-      'This is the day to simplify decisions, not multiply them.',
+      '체크아웃 시간 엄수. 짐 정리와 집 원상 복구는 전날 밤 미리 시작.',
+      '렌터카 반납 시간과 비행 시간 사이 여유 확보. 성수기 반납 대기 가능.',
+      '공항 면세점·기념품은 시간 여유가 있을 때만. 탑승 여유 시간 우선.',
     ],
   },
   sun: {
-    code: 'Exfil / Reset',
+    code: '귀가 / 마무리',
     tone: 'Green',
     summary:
-      'Sunday is a controlled exit. The mission is not sightseeing, it is a clean departure: brunch, pack-out, house reset, and staggered family departures without chaos. The smoother the morning feels, the better the whole weekend lands in memory.',
+      '일요일은 통제된 귀가입니다. 관광이 아니라 깔끔한 출발이 목표: 아침 식사, 짐 정리, 펜션 청소, 가족별 순차 출발. 아침이 여유로울수록 이번 여행 전체가 더 좋은 기억으로 남습니다.',
     lookouts: [
-      'Keep brunch simple and start pack-out early enough that checkout does not become the whole mood.',
-      'Assign quiet ownership for trash, fridge sweep, and final vehicle loading.',
-      'Avoid one-last-thing sprawl. The goal is a graceful exit, not extra complexity.',
+      '아침 식사를 간단히 하고 짐 정리를 일찍 시작해 체크아웃이 전체 분위기를 망치지 않도록.',
+      '쓰레기 분리, 냉장고 정리, 최종 짐 싣기에 조용한 책임자를 지정.',
+      "마지막으로 한 가지만 더' 확장을 피할 것. 목표는 우아한 퇴장이다.",
     ],
   },
 }
 
 const MISSION_OBJECTIVE_COPY = {
-  thu: 'Get inbound units through the gate, staged at basecamp, and settled before evening tempo begins.',
-  fri: 'Push the local ops window cleanly, keep coordination light, and preserve energy for the main park day.',
-  sat: 'Launch the park convoy on time, keep the group inside a realistic scope, and hold margin for a calm return.',
-  sun: 'Run a controlled pack-out and stagger departures without turning checkout into the whole mood.',
+  thu: '전 가족을 제주 와일리제주에 안착시키고, 저녁 템포가 시작되기 전에 휴식 체계를 구축.',
+  fri: '협재해수욕장·한림공원 운영 윈도우를 깔끔하게 운영하고, 조율 부담을 최소화하며, 아이들이 최대한 즐길 수 있게.',
+  sat: '제주공항으로 원활히 귀가하고, 체크아웃·렌터카 반납·탑승을 여유 있게 마무리.',
+  sun: '통제된 짐 정리를 실행하고, 체크아웃이 전체 분위기를 좌우하지 않도록 가족별 순차 출발 진행.',
 }
 
 const MISSION_LAUNCH_THEME = {
@@ -344,11 +356,11 @@ const MISSION_LAUNCH_KEYFRAMES = `
 
 function formatCurrency(amount) {
   const value = Number.isFinite(amount) ? amount : Number(amount) || 0
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('ko-KR', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'KRW',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0,
   }).format(value)
 }
 
@@ -360,7 +372,7 @@ function parseCurrencyInput(value) {
 }
 
 function getFamilyLabel(families, familyId) {
-  return families.find((family) => family.id === familyId)?.title || 'Unknown family'
+  return families.find((family) => family.id === familyId)?.title || '알 수 없는 가족'
 }
 
 function stampFamilyMetadata(item, familyId) {
@@ -653,17 +665,17 @@ function buildOperationGateContext(doc, gate) {
   const etaLabel = stripDayPrefix(getSlotLabel(etaSlot))
   const participantLabel =
     !families.length
-      ? gate.dayLabel || 'All units'
+      ? gate.dayLabel || '전체 출발'
       : families.length === doc.families.length
-        ? 'All families'
+        ? '전체 가족'
         : formatNameList(families.map((family) => family.title))
   const targetTitle = targetLocation?.title || gate.title
   const targetMeta = targetLocation ? getEntitySummary(targetLocation) : primaryItem.status || gate.subtitle
   const routeCount = relatedRoutes.length || Math.max(relatedTravelItems.length, 1)
   const deploymentLabel = targetLocation
-    ? `${participantLabel} deploying to ${targetTitle}.`
-    : `${participantLabel} moving on ${gate.title}.`
-  const objective = MISSION_OBJECTIVE_COPY[dayId] || `Advance ${participantLabel.toLowerCase()} into ${gate.title.toLowerCase()}.`
+    ? `${participantLabel} → ${targetTitle} 이동 중.`
+    : `${participantLabel} — ${gate.title} 진행 중.`
+  const objective = MISSION_OBJECTIVE_COPY[dayId] || `${participantLabel} → ${gate.title} 진입.`
 
   return {
     dayId,
@@ -791,6 +803,86 @@ function NotesBox({ value, onChange, placeholder }) {
   )
 }
 
+function getFamilyHeadcountLabel(family) {
+  if (!family) return formatFamilyHeadcount()
+  if (family.headcount) return family.headcount
+  return formatFamilyHeadcount({
+    adults: family.adults,
+    children: family.children,
+  })
+}
+
+function FieldLabel({ children, meta }) {
+  return (
+    <div className="mb-2 flex items-center justify-between gap-3">
+      <div className="text-[10px] font-black uppercase tracking-[0.16em] text-[#8B949E]">
+        {children}
+      </div>
+      {meta ? <div className="text-[10px] text-[#8B949E]">{meta}</div> : null}
+    </div>
+  )
+}
+
+function TextField({ value, onChange, placeholder }) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder={placeholder}
+      className="w-full border border-[#30363D] bg-[#0d1117] px-3 py-2 text-[11px] text-[#C9D1D9] outline-none focus:border-[#58A6FF]"
+    />
+  )
+}
+
+function NumberField({ value, onChange, min = 0 }) {
+  return (
+    <input
+      type="number"
+      min={min}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full border border-[#30363D] bg-[#0d1117] px-3 py-2 text-[11px] text-[#C9D1D9] outline-none focus:border-[#58A6FF]"
+    />
+  )
+}
+
+function SelectField({ value, onChange, options }) {
+  return (
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full border border-[#30363D] bg-[#0d1117] px-3 py-2 text-[11px] text-[#C9D1D9] outline-none focus:border-[#58A6FF]"
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+function StatTile({ label, value, tone = 'default' }) {
+  const toneClasses = {
+    default: 'border-[#30363D] bg-[#0d1117] text-[#C9D1D9]',
+    accent: 'border-[#58A6FF]/40 bg-[#58A6FF]/10 text-[#C9D1D9]',
+    success: 'border-[#3FB950]/30 bg-[#3FB950]/10 text-[#C9D1D9]',
+  }
+
+  return (
+    <div className={`border px-3 py-3 ${toneClasses[tone] || toneClasses.default}`}>
+      <div className="text-[9px] font-black uppercase tracking-[0.16em] text-[#8B949E]">{label}</div>
+      <div className="mt-2 text-[15px] font-black uppercase tracking-[0.08em]">{value}</div>
+    </div>
+  )
+}
+
+function toWholeNumber(value, fallback = 0) {
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback
+}
+
 function SelectableCard({ selected, onClick, children, className = '' }) {
   return (
     <button
@@ -817,7 +909,7 @@ function PageNotesCard({ title, value, onChange, onConvert, placeholder }) {
           onClick={onConvert}
           className="text-[9px] font-black uppercase tracking-wider text-[#58A6FF]"
         >
-          note to task
+          할 일로 전환
         </button>
       </div>
       <NotesBox value={value} onChange={onChange} placeholder={placeholder} />
@@ -827,6 +919,7 @@ function PageNotesCard({ title, value, onChange, onConvert, placeholder }) {
 
 function AppShell({
   doc,
+  tripMeta,
   onSetSelectedPage,
   onExport,
   onSearchChange,
@@ -835,6 +928,10 @@ function AppShell({
   families,
   activeFamily,
   onSetActiveFamily,
+  onOpenNotionSetup,
+  notionSyncStatus,
+  onReset,
+  onAddFamily,
   children,
 }) {
   return (
@@ -873,21 +970,45 @@ function AppShell({
             type="button"
             onClick={onExport}
             className="flex w-full items-center justify-center px-3 py-3.5 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#C9D1D9]"
-            title="Export trip state"
+            title="여행 데이터 내보내기"
           >
             <Download size={20} strokeWidth={1.6} />
           </button>
           <button
             type="button"
+            onClick={onReset}
+            className="flex w-full items-center justify-center px-3 py-3.5 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#F85149]"
+            title="데이터 초기화 (전체 삭제 후 기본값 복원)"
+          >
+            <RotateCcw size={18} strokeWidth={1.6} />
+          </button>
+          <button
+            type="button"
             className="flex w-full items-center justify-center px-3 py-3.5 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#C9D1D9]"
-            title="Messages"
+            title="메시지"
           >
             <MessageSquare size={20} strokeWidth={1.6} />
           </button>
           <button
             type="button"
+            onClick={onOpenNotionSetup}
+            className={cn(
+              'flex w-full items-center justify-center px-3 py-3.5 transition-colors hover:bg-[#1f2a34]',
+              notionSyncStatus === 'success'
+                ? 'text-[#3FB950]'
+                : notionSyncStatus === 'error'
+                ? 'text-[#F85149]'
+                : 'text-[#8B949E] hover:text-[#C9D1D9]',
+            )}
+            title="노션 데이터베이스 연동"
+          >
+            <Database size={20} strokeWidth={1.6} />
+          </button>
+          <OnboardingResetButton />
+          <button
+            type="button"
             className="flex w-full items-center justify-center px-3 py-3.5 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#C9D1D9]"
-            title="Settings"
+            title="설정"
           >
             <Settings size={20} strokeWidth={1.6} />
           </button>
@@ -896,19 +1017,15 @@ function AppShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex h-12 items-center justify-between border-b border-[#30363D] bg-[#161b22] px-6">
-          <div className="flex items-center gap-6">
-            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#3FB950]">
-              UNCLASSIFIED // FAMILY OPS
-            </div>
-            <div className="h-5 w-px bg-[#30363D]" />
-            <div className="text-[10px] font-bold uppercase tracking-widest text-[#8B949E]">
-              {TRIP_META.commandName}
+          <div className="flex items-center gap-4">
+            <div className="text-[11px] font-bold tracking-wide text-[#C9D1D9]">
+              {tripMeta?.commandName || '여행매니저'}
             </div>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="text-[9px] font-black uppercase tracking-[0.18em] text-[#8B949E]">
-                Working as
+              <div className="text-[9px] font-medium text-[#8B949E]">
+                현재 가족
               </div>
               <div className="flex items-center gap-1.5">
                 {families.map((family) => (
@@ -928,9 +1045,6 @@ function AppShell({
                 ))}
               </div>
             </div>
-            <div className="rounded-[2px] border border-[#30363D] bg-[#0d1117] px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-[#58A6FF]">
-              autosave live
-            </div>
             <div className="relative">
               <Search
                 size={14}
@@ -940,7 +1054,7 @@ function AppShell({
                 type="text"
                 value={doc.ui.searchQuery}
                 onChange={(event) => onSearchChange(event.target.value)}
-                placeholder="Search..."
+                placeholder="검색..."
                 className="w-64 rounded-[2px] border border-[#30363D] bg-[#0d1117] py-1.5 pl-10 pr-4 text-[11px] outline-none focus:border-[#58A6FF]"
               />
               {doc.ui.searchQuery && searchResults.length ? (
@@ -957,7 +1071,7 @@ function AppShell({
                         <div className="text-[10px] text-[#8B949E]">{getEntitySummary(item)}</div>
                       </div>
                       <div className="text-[9px] font-black uppercase tracking-wider text-[#58A6FF]">
-                        {item.type}
+                        {({'family':'가족','meal':'식사','expense':'비용','activity':'활동','location':'장소','itineraryItem':'일정','task':'할 일','route':'경로'})[item.type] || item.type}
                       </div>
                     </button>
                   ))}
@@ -975,15 +1089,20 @@ function AppShell({
         <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0b0f14]/86 backdrop-blur-sm">
           <div className="w-[420px] border border-[#30363D] bg-[#161b22] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
             <div className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#58A6FF]">
-              Family Profile
+              가족 프로필
             </div>
             <div className="text-[18px] font-black uppercase tracking-[0.08em] text-[#E6EDF3]">
-              Choose your family
+              어느 가족으로 접속하시나요?
             </div>
             <div className="mt-2 text-[12px] leading-relaxed text-[#8B949E]">
-              This stays local in your browser, personalizes the planner to your family, and attributes edits and new expenses to you.
+              선택한 프로필은 브라우저에 저장됩니다. 메모·비용 작성 시 작성자 표시에 사용됩니다.
             </div>
             <div className="mt-5 grid gap-2">
+              {families.length === 0 && (
+                <div className="border border-dashed border-[#30363D] px-4 py-5 text-center text-[11px] text-[#8B949E]">
+                  등록된 가족이 없습니다. 아래 버튼으로 추가하세요.
+                </div>
+              )}
               {families.map((family) => (
                 <button
                   key={family.id}
@@ -996,12 +1115,20 @@ function AppShell({
                       {family.title}
                     </div>
                     <div className="mt-1 text-[10px] text-[#8B949E]">
-                      {family.shortOrigin} inbound · {family.headcount}
+                      {family.shortOrigin} 출발 · {getFamilyHeadcountLabel(family)}
                     </div>
                   </div>
                   <ArrowRight size={14} className="text-[#58A6FF]" />
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={onAddFamily}
+                className="flex items-center justify-center gap-2 border border-dashed border-[#30363D] bg-[#0d1117] px-4 py-3 text-[11px] font-bold text-[#58A6FF] transition-colors hover:border-[#58A6FF]/50 hover:bg-[#1f2a34]/40"
+              >
+                <Flag size={13} />
+                새 가족 추가
+              </button>
             </div>
           </div>
         </div>
@@ -1030,7 +1157,7 @@ function FamilyList({ doc, selection, onSelectEntity }) {
                 {family.title}
               </div>
               <div className="text-[10px] font-medium text-[#8B949E]">
-                {family.shortOrigin} inbound, {family.headcount}
+                {family.shortOrigin} 출발 · {getFamilyHeadcountLabel(family)}
               </div>
             </div>
             <StatusPill tone={family.status}>{family.status}</StatusPill>
@@ -1214,7 +1341,7 @@ function DailyBriefingModal({ briefing, onClose, onOpenEntity }) {
         <div className="grid max-h-[calc(100vh-220px)] gap-5 overflow-y-auto p-6 xl:grid-cols-[1.05fr_0.95fr]">
           <div className="space-y-5">
             <div className="border border-[#30363D] bg-[#161b22] p-4">
-              <SectionTitle eyebrow="Watch For" title="What matters today" />
+              <SectionTitle eyebrow="주요 체크포인트" title="오늘 핵심 포인트" />
               <div className="space-y-3">
                 {briefing.lookouts.map((item) => (
                   <div key={item} className="border border-[#30363D] bg-[#0d1117] px-3 py-3 text-[11px] leading-relaxed text-[#C9D1D9]">
@@ -1224,13 +1351,13 @@ function DailyBriefingModal({ briefing, onClose, onOpenEntity }) {
               </div>
             </div>
 
-            {railSection('Live surfaces', briefing.liveItems, 'Nothing is active yet for this day window.')}
+            {railSection('현재 활성', briefing.liveItems, '이 날 아직 활성 항목이 없습니다.')}
             {railSection('Coming up', briefing.soonItems, 'No immediate follow-ups are queued right now.')}
           </div>
 
           <div className="space-y-5">
             <div className="border border-[#30363D] bg-[#161b22] p-4">
-              <SectionTitle eyebrow="Planned beats" title="Activities + meals" />
+              <SectionTitle eyebrow="오늘의 일정" title="활동 + 식사" />
               <div className="space-y-3">
                 {briefing.activities.map((activity) => (
                   <button
@@ -1261,13 +1388,13 @@ function DailyBriefingModal({ briefing, onClose, onOpenEntity }) {
                   </button>
                 ))}
                 {!briefing.activities.length && !briefing.meals.length ? (
-                  <div className="text-[11px] text-[#8B949E]">No day-specific beats are attached yet.</div>
+                  <div className="text-[11px] text-[#8B949E]">오늘 일정이 아직 없습니다.</div>
                 ) : null}
               </div>
             </div>
 
             <div className="border border-[#30363D] bg-[#161b22] p-4">
-              <SectionTitle eyebrow="Open loops" title="Tasks to keep in mind" />
+              <SectionTitle eyebrow="미완료 항목" title="미완료 할 일" />
               <div className="space-y-2">
                 {briefing.tasks.length ? briefing.tasks.map((task) => (
                   <button
@@ -1279,7 +1406,7 @@ function DailyBriefingModal({ briefing, onClose, onOpenEntity }) {
                     {task.title}
                   </button>
                 )) : (
-                  <div className="text-[11px] text-[#8B949E]">No open day-specific tasks. Good hunting.</div>
+                  <div className="text-[11px] text-[#8B949E]">미완료 할 일이 없습니다. 순항 중 🙂</div>
                 )}
               </div>
             </div>
@@ -1306,7 +1433,7 @@ function MissionLaunchModal({ doc, gate, remainingMs, onProceed, onAbort }) {
   const statusCards = [
     { label: 'Launch', value: context.launchLabel, icon: Flag },
     { label: 'ETA', value: context.etaLabel, icon: Route },
-    { label: 'Units', value: `${context.unitCount}`, icon: Users },
+    { label: '이동 가족 수', value: `${context.unitCount}`, icon: Users },
   ]
 
   return (
@@ -1537,7 +1664,7 @@ function SituationBoard({ context, onOpenEntity, onOpenBriefing }) {
         <div className="text-[18px] font-black text-[#F0F6FC]">{context.cursorLabel}</div>
         <div className="mt-1 text-[11px] text-[#8B949E]">
           {context.liveEntities.length
-            ? `${context.liveEntities.length} live item${context.liveEntities.length > 1 ? 's' : ''} in motion`
+            ? `${context.liveEntities.length}개 항목 진행 중`
             : 'No live items in this window'}
         </div>
         <div className="mt-4 grid grid-cols-2 gap-2">
@@ -1621,7 +1748,7 @@ function TimelineBoard({
   }
   const rows = [
     { id: 'travel', label: 'Transit' },
-    { id: 'activities', label: 'Main Ops' },
+    { id: 'activities', label: '주요 활동' },
     { id: 'support', label: 'Support' },
   ]
   const rowLayouts = rows.map((row, index) => ({
@@ -1674,7 +1801,7 @@ function TimelineBoard({
               type="button"
               onClick={onRestartPlayback}
               className="inline-flex h-7 w-7 items-center justify-center border border-[#30363D] bg-[#0d1117] text-[#8B949E] transition-colors hover:border-[#58A6FF]/40 hover:text-[#C9D1D9]"
-              title="Restart playback from trip start"
+              title="처음부터 재생"
             >
               <RotateCcw size={13} />
             </button>
@@ -2012,13 +2139,13 @@ function getMealContextNarrative(meal, location, linkedMission) {
     return 'Cook-in coverage keeps the day flexible and reduces logistics overhead for families with kids.'
   }
   if (meal.id === 'sat-lunch') {
-    return 'This stop needs clean timing because it sits inside the Yosemite mission and depends on traffic, entry flow, and kid energy.'
+    return '협재·한림공원 일정 도중 포함된 식사 정차로, 이동 흐름·아이 에너지에 따라 타이밍이 결정된다.'
   }
   if (meal.id === 'fri-dinner') {
-    return 'This reservation is the reset valve after lake time and late arrival handoff, so preserving margin matters more than squeezing in extras.'
+    return '해변 시간과 박씨 가족 합류 후의 리셋 밸브. 여유 마진을 지키는 것이 무엇을 더 추가하는 것보다 중요하다.'
   }
   if (meal.id === 'thu-dinner') {
-    return 'First-night dinner should stay frictionless so arrival, gate access, and room setup do not cascade into everyone else.'
+    return '첫날 저녁은 마찰 없이 진행되어야 도착·체크인·방 셋업 과정이 다른 가족에게 연쇄적으로 영향을 주지 않는다.'
   }
   return linkedMission?.summary || location?.summary || meal.note
 }
@@ -2035,93 +2162,93 @@ function getMealMedia(location) {
 
 const ACTIVITY_RESEARCH = {
   'thu-transit': {
-    headline: 'Arrival day should optimize for smooth landfall, not ambition.',
+    headline: '도착일은 야망이 아닌 원활한 안착을 최우선으로.',
     cards: [
       {
-        eyebrow: 'Night Objective',
-        title: 'Check in, decompress, dinner, done',
+        eyebrow: '저녁 목표',
+        title: '체크인, 긴장 해소, 저녁 식사, 마무리',
         bullets: [
-          'The mission is to get each family through gate access, unload only the essentials, and preserve enough energy for an easy first night.',
-          'Use dinner as the reset point. Do not stack optional errands or sightseeing after arrival.',
-          'If anyone is running late, the fallback is minimum-viable cabin setup plus direct handoff into dinner/rest mode.',
+          '각 가족이 펜션에 도착해 필수품만 풀고, 첫날 밤을 편하게 보낼 에너지를 보존하는 것이 목표.',
+          '저녁 식사를 리셋 포인트로 활용. 도착 후 선택적 심부름이나 관광을 겹쳐 쌓지 않는다.',
+          '누군가 늦는다면 최소 침실 셋업 후 저녁/휴식 모드로 직행하는 것이 플랜 B.',
         ],
       },
       {
-        eyebrow: 'Transit Focus',
-        title: 'Each family runs a different inbound playbook',
+        eyebrow: '이동 집중',
+        title: '각 가족은 서로 다른 이동 플레이북을 따른다',
         bullets: [
-          'Parkers have the long LA haul, so road-trip stops and dinner timing matter most there.',
-          'Jiangs can act as the most flexible support unit if another family slips.',
-          'The first family on site should not silently inherit all setup work, so arrival responsibilities need to stay explicit.',
+          '이씨 가족은 수원에서 장거리 이동. 중간 휴게소 정차와 저녁 타이밍이 가장 중요.',
+          '김씨 가족은 서울 출발로 유연한 지원 역할 가능. 다른 가족이 늦을 경우 대응 가능.',
+          '먼저 도착한 가족이 모든 셋업을 혼자 떠맡지 않도록 도착 역할을 사전에 명확히 배분.',
         ],
       },
     ],
   },
   'fri-lake': {
-    headline: 'Friday should feel local, flexible, and easy on kid energy.',
+    headline: '일요일은 협재해수욕장·한림공원 중심으로, 아이 에너지 최우선.',
     cards: [
       {
-        eyebrow: 'PML Ideas',
-        title: 'Family-friendly options at Pine Mountain Lake',
+        eyebrow: '협재해수욕장',
+        title: '제주 서쪽 최고 해변에서 물놀이',
         bullets: [
-          'Marina Beach is the most full-service zone, with picnic tables, grills, a cafe/store, and the easiest all-in family setup.',
-          'Lake Lodge Beach is smaller and has a playground nearby, which makes it a strong fit for alternating swim + play cycles.',
-          'Dunn Court Beach is quieter and works better if you want a lower-stimulus backup.',
+          '협재해수욕장은 에메랄드빛 수색과 얕은 수심으로 어린이 물놀이에 최적. 성수기에도 넓은 편.',
+          '해녀의 집에서 점심(성게국수·전복죽)으로 제주 맛을 체험. 현장 대기 가능.',
+          '비양도 뷰가 아름다워 사진 스폿으로도 제격. 일몰 전 여유 있게 이동 계획 필요.',
         ],
       },
       {
-        eyebrow: 'Extra Options',
-        title: 'Ways to vary the day without leaving PML',
+        eyebrow: '한림공원',
+        title: '아이 친화 관광지와 연계 동선',
         bullets: [
-          'The lake community also has a pool, tennis/pickleball, golf, marina/boat access, and an equestrian center.',
-          'A lighter split plan could be beach for the kids while another adult group checks the pool, pickleball, or marina store.',
-          'Because this is inside the gated community, it is the best day to keep logistics low and recover from Thursday transit.',
+          '한림공원은 협재 바로 옆. 용암동굴, 아열대식물원, 민속관 등 아이들이 흥미로워 할 코스.',
+          '오전 한림공원 → 점심 해녀의 집 → 오후 협재해수욕장 순서가 가장 무난한 동선.',
+          '저녁 흑돼지 예약 시간 맞춰 협재에서 애월로 이동 타이밍 사전 설정.',
         ],
       },
     ],
   },
   'sat-yosemite': {
-    headline: 'Yosemite should be structured around a few high-payoff, low-friction stops.',
+    headline: '협재해수욕장은 월요일 귀가 전 마지막 아침 여유 공간.',
     cards: [
       {
-        eyebrow: 'Best Easy Stops',
-        title: 'Family-friendly Yosemite Valley flow',
+        eyebrow: '귀가 전 여유',
+        title: '체크아웃 후 공항 이동 동선',
         bullets: [
-          'Lower Yosemite Fall is one of the easiest iconic walks in the valley and works well for a first major stop.',
-          "Cook's Meadow is flat, scenic, and a good low-effort way to get valley views without overcommitting.",
-          'Swinging Bridge is useful as a picnic / water / reset stop if kid energy needs a break.',
+          '와일리제주 체크아웃 후 제주공항까지 약 40분. 렌터카 반납 시간 반드시 확인.',
+          '성수기 광복절 연휴 복귀 항공편은 혼잡. 탑승 2시간 전 공항 도착 권장.',
+          '귀가 당일 아침 식사는 숙소 주변에서 간단히. 시간 여유 분산을 우선시.',
         ],
       },
       {
-        eyebrow: 'Operational Notes',
-        title: 'Keep the mission flexible',
+        eyebrow: '운영 주의사항',
+        title: '귀가 날은 단순하게',
         bullets: [
-          'Tunnel View is the easiest headline photo stop if timing or walking tolerance tightens up.',
-          'Shuttle use inside Yosemite Valley can reduce parking churn if the valley is busy.',
-          'If weather or kid pacing degrades, shorten the day and preserve enough energy for the cookout dinner back at basecamp.',
+          '관광 추가 욕심 금지. 체크아웃·렌터카·공항이 이날의 전부.',
+          '면세점 쇼핑은 여유 시간이 확실할 때만. 탑승 게이트 우선.',
+          '아이들 여행 피로가 누적된 날. 이동 속도를 느리게 설계.',
         ],
       },
     ],
   },
   'sun-home': {
-    headline: 'Sunday wins when it feels boring, orderly, and pre-decided.',
+    headline: '일요일은 무난하고, 질서정연하고, 미리 결정된 느낌일 때 성공이다.',
     cards: [
       {
-        eyebrow: 'Morning Flow',
-        title: 'Brunch, reset, depart in waves',
+        eyebrow: '아침 흐름',
+        title: '아침 식사, 정리, 순차 출발',
         bullets: [
-          'Cook brunch early enough that cleanup and final packing do not overlap into a chaotic checkout sprint.',
-          'Assign one adult to cabin reset and one to vehicle staging so the same person is not doing both.',
-          'If possible, pre-pack most kid gear Saturday night and keep only morning essentials out.',
+          '아침 식사를 일찍 시작해 청소와 최종 짐 정리가 체크아웃 직전에 겹치지 않도록.',
+          '한 명은 펜션 정리, 다른 한 명은 차량 짐 싣기를 담당해 같은 사람이 두 가지 다 하지 않도록.',
+          '가능하면 토요일 밤에 아이들 짐을 미리 싸두고 아침에는 필수품만 꺼내두기.',
         ],
       },
       {
-        eyebrow: 'Departure Logic',
-        title: 'Reduce Sunday friction',
+        eyebrow: '출발 로직',
+        title: '일요일 마찰을 줄인다',
         bullets: [
-          'Do a last sweep by zones: kitchen, bathrooms, bedrooms, charging cables, outdoor gear.',
-          'Treat garbage, fridge clean-out, and wet gear as explicit checkout tasks, not end-of-trip surprises.',
-          'Stagger departures if needed instead of forcing everyone into the same checkout bottleneck.',
+          '구역별로 최종 점검: 주방, 욕실, 침실, 충전 케이블, 야외 장비.',
+          '쓰레기 분리, 냉장고 정리, 젖은 물품은 예상치 못한 마감 작업이 아닌 명시적 체크아웃 태스크로.',
+          '필요하면 순차 출발. 모든 가족을 동일한 체크아웃 병목에 몰아넣지 않는다.',
         ],
       },
     ],
@@ -2132,15 +2259,15 @@ const JIANG_ROAD_TRIP_STOP_DEFAULTS = [
   {
     id: 'north-star-kettleman-lunch',
     type: 'location',
-    title: 'Bravo Farms',
+    title: '제주공항 렌터카 픽업',
     category: 'logistics',
     dayId: 'thu',
-    stopType: 'Lunch stop',
-    placesQuery: 'Bravo Farms Kettleman City CA',
-    address: '19950 Bernard Dr, Kettleman City, CA 93239',
-    coordinates: { lat: 35.9934, lng: -119.9617 },
-    externalUrl: 'https://www.google.com/maps/search/?api=1&query=Bravo+Farms+Kettleman+City',
-    summary: 'Good halfway lunch + restroom + leg-stretch stop on the LA inbound drive.',
+    stopType: '렌터카 픽업',
+    placesQuery: '제주국제공항',
+    address: '제주특별자치도 제주시 공항로 2',
+    coordinates: { lat: 33.5065, lng: 126.4934 },
+    externalUrl: 'https://www.google.com/maps/search/?api=1&query=제주국제공항',
+    summary: '제주공항 도착 후 렌터카 픽업. 성수기 대기 가능. 예약 번호 미리 준비.',
     linkedEntityKeys: [makeEntityKey('family', 'north-star'), makeEntityKey('itineraryItem', 'north-star-drive')],
     photos: [],
     note: '',
@@ -2148,15 +2275,15 @@ const JIANG_ROAD_TRIP_STOP_DEFAULTS = [
   {
     id: 'north-star-oakdale-break',
     type: 'location',
-    title: 'Oakdale Cheese & Specialties',
+    title: '제주공항 집결',
     category: 'logistics',
     dayId: 'thu',
-    stopType: 'Light break',
-    placesQuery: 'Oakdale Cheese & Specialties Oakdale CA',
-    address: '10040 CA-120, Oakdale, CA 95361',
-    coordinates: { lat: 37.7975, lng: -120.8108 },
-    externalUrl: 'https://www.google.com/maps/search/?api=1&query=Oakdale+Cheese+%26+Specialties',
-    summary: 'Final reset stop before the mountain leg. Good for snacks, bathrooms, and a quick stretch.',
+    stopType: '전 가족 집결',
+    placesQuery: '제주국제공항',
+    address: '제주특별자치도 제주시 공항로 2',
+    coordinates: { lat: 33.5065, lng: 126.4934 },
+    externalUrl: 'https://www.google.com/maps/search/?api=1&query=제주국제공항',
+    summary: '전 가족 제주공항 집결. 렌터카 픽업 후 와일리제주로 출발.',
     linkedEntityKeys: [makeEntityKey('family', 'north-star'), makeEntityKey('itineraryItem', 'north-star-drive')],
     photos: [],
     note: '',
@@ -2165,36 +2292,36 @@ const JIANG_ROAD_TRIP_STOP_DEFAULTS = [
 
 const FAMILY_VEHICLE_DEFAULTS = {
   'north-star': {
-    originAddress: '2800 E Observatory Rd, Los Angeles, CA 90027',
-    originCoordinates: { lat: 34.1184, lng: -118.3004 },
-    vehicleLabel: 'Vehicle 1',
+    originAddress: '김포공항 출발',
+    originCoordinates: { lat: 37.5583, lng: 126.7906 },
+    vehicleLabel: '비행편 1',
     plannedStopIds: ['north-star-kettleman-lunch', 'north-star-oakdale-break'],
-    routeSummary: 'Plan lunch in Kettleman City and a final light break in Oakdale before the last mountain leg into Pine Mountain Lake.',
+    routeSummary: '김포공항 → 제주공항 비행 후 렌터카 픽업, 와일리제주로 이동.',
   },
   'silver-peak': {
-    originAddress: '1 Ferry Building, San Francisco, CA 94111',
-    originCoordinates: { lat: 37.7955, lng: -122.3937 },
-    vehicleLabel: 'Vehicle 2',
+    originAddress: '김포공항 출발',
+    originCoordinates: { lat: 37.5583, lng: 126.7906 },
+    vehicleLabel: '비행편 2',
     plannedStopIds: ['north-star-oakdale-break'],
-    routeSummary: 'Plan a quick Oakdale Cheese reset stop before the final push into Pine Mountain Lake.',
+    routeSummary: '김포공항 → 제주공항 비행 후 와일리제주 직행.',
   },
   'desert-bloom': {
-    originAddress: '10 N Virginia St, Reno, NV 89501',
-    originCoordinates: { lat: 39.5296, lng: -119.8138 },
-    vehicleLabel: 'Vehicle 3',
+    originAddress: '청주공항 출발',
+    originCoordinates: { lat: 36.7166, lng: 127.499 },
+    vehicleLabel: '비행편 3',
     plannedStopIds: [],
-    routeSummary: 'Friday arrival push from Reno straight into Pine Mountain Lake.',
+    routeSummary: '청주공항 → 제주공항 비행 후 와일리제주 직행.',
   },
 }
 
 const YOSEMITE_ROUTE_DEFAULTS = {
-  title: 'Big Oak Flat Entrance',
-  placesQuery: 'Big Oak Flat Entrance Yosemite National Park CA',
-  address: 'Big Oak Flat Rd, Yosemite National Park, CA 95321',
-  coordinates: { lat: 37.8108, lng: -119.8744 },
-  externalUrl: 'https://www.google.com/maps/search/?api=1&query=Big+Oak+Flat+Entrance+Yosemite',
+  title: '협재해수욕장',
+  placesQuery: '협재해수욕장 제주',
+  address: '제주시 한림읍 협재리',
+  coordinates: { lat: 33.394, lng: 126.239 },
+  externalUrl: 'https://www.google.com/maps/search/?api=1&query=협재해수욕장+제주',
   summary:
-    'Primary Saturday route anchor. Using the west entrance keeps park access, traffic watch, and drive planning grounded in a real checkpoint.',
+    '일요일 협재해수욕장 메인 루트 앵커. 에메랄드빛 해변 중심으로 물놀이, 해녀의 집 점심, 한림공원 연계 동선 구체화.',
 }
 
 const ROUTE_SIM_DEFAULTS = {
@@ -2628,7 +2755,7 @@ function ItineraryPage({
           <div className="space-y-4 p-4">
             <SituationBoard context={context} onOpenEntity={onOpenEntity} onOpenBriefing={handleOpenBriefing} />
             <div>
-              <SectionTitle eyebrow="Response Plans" title="Travel units" meta={`${doc.families.length} families`} />
+              <SectionTitle eyebrow="이동 계획" title="이동 가족" meta={`${doc.families.length} families`} />
               <FamilyList doc={doc} selection={selection} onSelectEntity={onSelectEntity} />
             </div>
             <div>
@@ -2636,11 +2763,11 @@ function ItineraryPage({
             </div>
             <div>
               <PageNotesCard
-                title="Planner note"
+                title="계획 메모"
                 value={getPageNote(doc, 'itinerary')}
                 onChange={(value) => onUpdatePageNote('itinerary', value)}
                 onConvert={() => onConvertPageNote('itinerary')}
-                placeholder="Add a planning note..."
+                placeholder="일정 계획 메모 추가..."
               />
             </div>
           </div>
@@ -2722,7 +2849,7 @@ function StayPage({ doc, selection, onSelectEntity, onUpdatePageNote, onConvertP
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[minmax(380px,440px)_1fr] overflow-hidden">
       <div className="overflow-y-auto border-r border-[#30363D] bg-[#161b22] p-6">
-        <SectionTitle eyebrow="Basecamp" title={airbnb?.title || 'Basecamp'} meta={TRIP_META.subtitle} />
+        <SectionTitle eyebrow="베이스캠프" title={airbnb?.title || '베이스캠프'} meta={doc.tripMeta?.subtitle} />
         <SelectableCard
           selected={selection.type === 'location' && selection.id === airbnb.id}
           onClick={() => onSelectEntity('location', airbnb.id)}
@@ -2732,7 +2859,7 @@ function StayPage({ doc, selection, onSelectEntity, onUpdatePageNote, onConvertP
           <div className="text-[12px] text-[#C9D1D9]">{airbnb.address}</div>
           {showExternalListing ? (
             <div className="mt-3 inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#58A6FF]">
-              Open listing <ExternalLink size={12} />
+              숙소 페이지 <ExternalLink size={12} />
             </div>
           ) : null}
         </SelectableCard>
@@ -2754,105 +2881,94 @@ function StayPage({ doc, selection, onSelectEntity, onUpdatePageNote, onConvertP
         </div>
       </div>
       <div className="overflow-y-auto bg-[#0d1117] p-6">
-        <SectionTitle eyebrow="Basecamp Intel" title="Arrival, access, and house ops" meta="Visible without drill-in" />
-        <div className="mb-6 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
-          <div className="border border-[#30363D] bg-[#161b22] p-4">
-            <div className="mb-3 text-[10px] font-black uppercase tracking-[0.18em] text-[#58A6FF]">
-              Arrival packet
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="border border-[#30363D] bg-[#0d1117] p-3">
-                <div className="text-[9px] font-black uppercase tracking-widest text-[#8B949E]">Check-in</div>
-                <div className="mt-1 text-[12px] font-bold text-[#C9D1D9]">{airbnb.checkIn}</div>
-              </div>
-              <div className="border border-[#30363D] bg-[#0d1117] p-3">
-                <div className="text-[9px] font-black uppercase tracking-widest text-[#8B949E]">Check-out</div>
-                <div className="mt-1 text-[12px] font-bold text-[#C9D1D9]">{airbnb.checkOut}</div>
-              </div>
-              {airbnb.wifiNetwork || airbnb.wifiPassword ? (
-                <div className="border border-[#30363D] bg-[#0d1117] p-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-[#8B949E]">WiFi</div>
-                  <div className="mt-1 text-[12px] font-bold text-[#C9D1D9]">{airbnb.wifiNetwork}</div>
-                  <div className="mt-1 text-[10px] text-[#8B949E]">{airbnb.wifiPassword}</div>
-                </div>
-              ) : null}
-              {airbnb.lockNote ? (
-                <div className="border border-[#30363D] bg-[#0d1117] p-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-[#8B949E]">Access</div>
-                  <div className="mt-1 text-[12px] font-bold text-[#C9D1D9]">{airbnb.lockNote}</div>
-                </div>
-              ) : null}
-              {airbnb.hostName || airbnb.coHostName || airbnb.guestSummary ? (
-                <div className="border border-[#30363D] bg-[#0d1117] p-3">
-                  <div className="text-[9px] font-black uppercase tracking-widest text-[#8B949E]">Host</div>
-                  <div className="mt-1 text-[12px] font-bold text-[#C9D1D9]">
-                    {airbnb.hostName}
-                    {airbnb.coHostName ? ` / ${airbnb.coHostName}` : ''}
-                  </div>
-                  <div className="mt-1 text-[10px] text-[#8B949E]">{airbnb.guestSummary}</div>
-                </div>
-              ) : null}
-              <div className="border border-[#30363D] bg-[#0d1117] p-3">
-                <div className="text-[9px] font-black uppercase tracking-widest text-[#8B949E]">
-                  {isSanitizedStay ? 'Sanitized demo mode' : 'Gate fee'}
-                </div>
-                <div className="mt-1 text-[12px] font-bold text-[#C9D1D9]">{airbnb.vehicleFee}</div>
-                <div className="mt-1 text-[10px] text-[#8B949E]">
-                  {isSanitizedStay ? 'Operational access details are intentionally withheld.' : 'Per vehicle at Pine Mountain Dr entrance'}
-                </div>
-              </div>
-            </div>
+        <SectionTitle eyebrow="베이스캠프 정보" title="도착 · 입실 · 숙소 운영" />
+        <div className="mb-6 space-y-3">
 
-            <div className="mt-4 space-y-3 border-t border-[#30363D]/50 pt-4 text-[11px] leading-relaxed text-[#8B949E]">
-              <div>
-                <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-[#58A6FF]">Arrival route</div>
-                <div>{airbnb.directionsNote}</div>
-              </div>
-              <div>
-                <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-[#58A6FF]">Gate + access</div>
-                <div>{airbnb.accessNote}</div>
-              </div>
-              <div>
-                <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-[#58A6FF]">Parking + Friday ops</div>
-                <div>{airbnb.parkingNote}</div>
-              </div>
-              {airbnb.confirmationCode ? (
-                <div>
-                  <div className="mb-1 text-[9px] font-black uppercase tracking-widest text-[#58A6FF]">Confirmation</div>
-                  <div>{airbnb.confirmationCode}</div>
-                </div>
-              ) : null}
+          {/* 핵심 정보 카드 */}
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+            <div className="border border-[#30363D] bg-[#161b22] p-3">
+              <div className="mb-1 text-[9px] font-bold uppercase tracking-widest text-[#58A6FF]">체크인</div>
+              <div className="text-[12px] font-bold text-[#C9D1D9]">{airbnb.checkIn}</div>
             </div>
+            <div className="border border-[#30363D] bg-[#161b22] p-3">
+              <div className="mb-1 text-[9px] font-bold uppercase tracking-widest text-[#58A6FF]">체크아웃</div>
+              <div className="text-[12px] font-bold text-[#C9D1D9]">{airbnb.checkOut}</div>
+            </div>
+            {airbnb.wifiNetwork ? (
+              <div className="border border-[#30363D] bg-[#161b22] p-3">
+                <div className="mb-1 text-[9px] font-bold uppercase tracking-widest text-[#58A6FF]">와이파이</div>
+                <div className="text-[11px] font-bold text-[#C9D1D9]">{airbnb.wifiNetwork}</div>
+                {airbnb.wifiPassword && <div className="mt-0.5 text-[10px] text-[#8B949E]">{airbnb.wifiPassword}</div>}
+              </div>
+            ) : null}
+            {airbnb.vehicleFee ? (
+              <div className="border border-[#30363D] bg-[#161b22] p-3">
+                <div className="mb-1 text-[9px] font-bold uppercase tracking-widest text-[#58A6FF]">렌터카</div>
+                <div className="text-[11px] text-[#C9D1D9]">{airbnb.vehicleFee}</div>
+              </div>
+            ) : null}
           </div>
 
-          <div className="border border-[#30363D] bg-[#161b22] p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#58A6FF]">
-                Links + media
-              </div>
-              {showExternalListing ? (
-                <button
-                  type="button"
-                  onClick={() => window.open(airbnb.externalUrl, '_blank', 'noreferrer')}
-                  className="inline-flex items-center gap-2 text-[9px] font-black uppercase tracking-widest text-[#58A6FF]"
-                >
-                  Open listing <ExternalLink size={12} />
-                </button>
-              ) : null}
+          {/* 안내 텍스트 행 */}
+          {(airbnb.directionsNote || airbnb.gateNote || airbnb.parkingNote || airbnb.confirmationCode) && (
+            <div className="divide-y divide-[#21262D] border border-[#30363D] bg-[#161b22]">
+              {airbnb.directionsNote && (
+                <div className="flex gap-4 px-4 py-3">
+                  <div className="w-20 shrink-0 pt-0.5 text-[9px] font-bold uppercase tracking-wider text-[#58A6FF]">찾아오는 길</div>
+                  <div className="text-[11px] leading-relaxed text-[#8B949E]">{airbnb.directionsNote}</div>
+                </div>
+              )}
+              {airbnb.gateNote && (
+                <div className="flex gap-4 px-4 py-3">
+                  <div className="w-20 shrink-0 pt-0.5 text-[9px] font-bold uppercase tracking-wider text-[#58A6FF]">출입 안내</div>
+                  <div className="text-[11px] leading-relaxed text-[#8B949E]">{airbnb.gateNote}</div>
+                </div>
+              )}
+              {airbnb.parkingNote && (
+                <div className="flex gap-4 px-4 py-3">
+                  <div className="w-20 shrink-0 pt-0.5 text-[9px] font-bold uppercase tracking-wider text-[#58A6FF]">주차 안내</div>
+                  <div className="text-[11px] leading-relaxed text-[#8B949E]">{airbnb.parkingNote}</div>
+                </div>
+              )}
+              {airbnb.confirmationCode && (
+                <div className="flex gap-4 px-4 py-3">
+                  <div className="w-20 shrink-0 pt-0.5 text-[9px] font-bold uppercase tracking-wider text-[#58A6FF]">예약 확인</div>
+                  <div className="font-mono text-[11px] text-[#C9D1D9]">{airbnb.confirmationCode}</div>
+                </div>
+              )}
             </div>
-            <div className="mb-3 grid gap-3 sm:grid-cols-2">
+          )}
+
+          {/* 주소 + 링크 */}
+          <div className="flex flex-wrap gap-2">
+            {airbnb.address && (
+              <div className="flex items-center gap-2 border border-[#30363D] bg-[#161b22] px-3 py-2 text-[11px] text-[#8B949E]">
+                <MapPin size={12} className="shrink-0 text-[#58A6FF]" />
+                {airbnb.address}
+              </div>
+            )}
+            {showExternalListing && (
+              <button type="button" onClick={() => window.open(airbnb.externalUrl, '_blank', 'noreferrer')}
+                className="inline-flex items-center gap-1.5 border border-[#30363D] bg-[#161b22] px-3 py-2 text-[11px] text-[#58A6FF] transition-colors hover:border-[#58A6FF]/40">
+                숙소 페이지 <ExternalLink size={12} />
+              </button>
+            )}
+            {showManual && (
+              <button type="button" onClick={() => window.open(airbnb.manualUrl, '_blank', 'noreferrer')}
+                className="inline-flex items-center gap-1.5 border border-[#30363D] bg-[#161b22] px-3 py-2 text-[11px] text-[#58A6FF] transition-colors hover:border-[#58A6FF]/40">
+                숙소 이용 안내 <ExternalLink size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* 사진 */}
+          {(airbnb.photos || []).length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
               {(airbnb.photos || []).slice(0, 2).map((media) => (
-                <a
-                  key={media.id}
-                  href={media.sourceUrl || media.imageUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="group overflow-hidden border border-[#30363D] bg-[#0d1117]"
-                >
-                  <div
-                    className="h-28 w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.03]"
-                    style={{ backgroundImage: `url(${media.imageUrl})` }}
-                  />
+                <a key={media.id} href={media.sourceUrl || media.imageUrl} target="_blank" rel="noreferrer"
+                  className="group overflow-hidden border border-[#30363D] bg-[#0d1117]">
+                  <div className="h-28 w-full bg-cover bg-center transition-transform duration-300 group-hover:scale-[1.03]"
+                    style={{ backgroundImage: `url(${media.imageUrl})` }} />
                   <div className="flex items-center justify-between gap-3 px-3 py-2 text-[10px] font-bold text-[#C9D1D9]">
                     <span>{media.label}</span>
                     <ExternalLink size={12} className="text-[#58A6FF]" />
@@ -2860,29 +2976,10 @@ function StayPage({ doc, selection, onSelectEntity, onUpdatePageNote, onConvertP
                 </a>
               ))}
             </div>
-            <div className="space-y-2">
-              {showManual ? (
-                <button
-                  type="button"
-                  onClick={() => window.open(airbnb.manualUrl, '_blank', 'noreferrer')}
-                  className="flex w-full items-center justify-between border border-[#30363D] bg-[#0d1117] px-3 py-3 text-left hover:border-[#58A6FF]/40"
-                >
-                  <div>
-                    <div className="text-[10px] font-black uppercase tracking-widest text-[#58A6FF]">House manual</div>
-                    <div className="mt-1 text-[11px] text-[#C9D1D9]">Open the full guest handbook and rules</div>
-                  </div>
-                  <ExternalLink size={13} className="text-[#58A6FF]" />
-                </button>
-              ) : null}
-              <div className="border border-[#30363D] bg-[#0d1117] px-3 py-3">
-                <div className="text-[10px] font-black uppercase tracking-widest text-[#58A6FF]">Address</div>
-                <div className="mt-1 text-[11px] text-[#C9D1D9]">{airbnb.address}</div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        <SectionTitle eyebrow="House Ops" title="Basecamp assignments" meta="Sleep + arrival + reset" />
+        <SectionTitle eyebrow="숙소 운영" title="숙소 배정" meta="취침·도착·정리" />
         <div className="mb-6 grid gap-4 md:grid-cols-2">
           {doc.families.map((family, index) => (
             <SelectableCard
@@ -2895,16 +2992,16 @@ function StayPage({ doc, selection, onSelectEntity, onUpdatePageNote, onConvertP
                 Room {index + 1}
               </div>
               <div className="text-[12px] font-bold text-[#58A6FF]">{family.title}</div>
-              <div className="mt-1 text-[10px] text-[#8B949E]">{family.headcount}</div>
+              <div className="mt-1 text-[10px] text-[#8B949E]">{getFamilyHeadcountLabel(family)}</div>
             </SelectableCard>
           ))}
         </div>
         <PageNotesCard
-          title="Stay note"
+          title="숙소 메모"
           value={getPageNote(doc, 'stay')}
           onChange={(value) => onUpdatePageNote('stay', value)}
           onConvert={() => onConvertPageNote('stay')}
-          placeholder="Record gate instructions, sleeping concerns, quiet hours, or house logistics..."
+          placeholder="체크인 안내, 취침 관련 사항, 조용히 해야 할 시간대, 숙소 물류 등 기록..."
         />
       </div>
     </div>
@@ -2924,17 +3021,17 @@ function MealsPage({ doc, selection, onSelectEntity, onToggleMealStatus, onUpdat
   const travelSummary = selectedLocation?.basecampDrive
     ? `${selectedLocation.basecampDrive.durationText} · ${selectedLocation.basecampDrive.distanceText}`
     : selectedLocation?.id === 'pine-airbnb'
-      ? 'No drive required'
-      : 'Directions-driven travel estimate will populate after route intel syncs.'
+      ? '이동 불필요'
+      : '경로 정보 로드 후 소요 시간이 표시됩니다.'
   const hoursPreview = selectedLocation?.openingHours?.slice(0, 3).join(' | ')
   const ratingSummary = selectedLocation?.rating
     ? `${selectedLocation.rating.toFixed(1)} rating${selectedLocation.userRatingsTotal ? ` · ${selectedLocation.userRatingsTotal} reviews` : ''}`
-    : 'Place details syncing'
+    : '장소 정보 불러오는 중'
 
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[minmax(360px,0.78fr)_minmax(520px,1.22fr)] overflow-hidden">
       <div className="overflow-y-auto border-r border-[#30363D] bg-[#161b22] p-6">
-        <SectionTitle eyebrow="Meal Logistics" title="Shared feeding plan" meta="Ownership + prep + kid friendliness" />
+        <SectionTitle eyebrow="식사 물류" title="공동 식사 계획" meta="담당·준비·아이 친화" />
         <div className="space-y-3">
           {doc.meals.map((meal) => (
             <div
@@ -3009,14 +3106,14 @@ function MealsPage({ doc, selection, onSelectEntity, onToggleMealStatus, onUpdat
                 {selectedLocation?.externalUrl ? (
                   <IntelAction
                     icon={MapPin}
-                    label="Open in Google Maps"
+                    label="지도에서 열기"
                     onClick={() => window.open(selectedLocation.externalUrl, '_blank', 'noreferrer')}
                   />
                 ) : null}
                 {selectedLocation?.websiteUrl ? (
                   <IntelAction
                     icon={Globe}
-                    label="Venue website"
+                    label="공식 사이트"
                     onClick={() => window.open(selectedLocation.websiteUrl, '_blank', 'noreferrer')}
                   />
                 ) : null}
@@ -3032,14 +3129,14 @@ function MealsPage({ doc, selection, onSelectEntity, onToggleMealStatus, onUpdat
 
               <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
                 <div className="border border-[#30363D] bg-[#0d1117] p-4">
-                  <SectionTitle eyebrow="Venue Intel" title={selectedLocation?.title || 'Venue pending'} meta={ratingSummary} />
+                  <SectionTitle eyebrow="장소 정보" title={selectedLocation?.title || '장소 미정'} meta={ratingSummary} />
                   <div className="space-y-3">
-                    <InfoRow icon={MapPin} label="Location" value={selectedLocation?.address || 'Waiting for place resolution'} />
-                    <InfoRow icon={Phone} label="Phone" value={selectedLocation?.phoneNumber} />
-                    <InfoRow icon={Star} label="Reservation note" value={selectedLocation?.reservationNote || selectedMeal.note} muted />
+                    <InfoRow icon={MapPin} label="위치" value={selectedLocation?.address || '장소 확인 중'} />
+                    <InfoRow icon={Phone} label="연락처" value={selectedLocation?.phoneNumber} />
+                    <InfoRow icon={Star} label="예약 메모" value={selectedLocation?.reservationNote || selectedMeal.note} muted />
                     <InfoRow
                       icon={ExternalLink}
-                      label="Hours"
+                      label="운영 시간"
                       value={hoursPreview || 'Opening hours will appear when place details are available.'}
                       muted={!hoursPreview}
                     />
@@ -3047,17 +3144,17 @@ function MealsPage({ doc, selection, onSelectEntity, onToggleMealStatus, onUpdat
                 </div>
 
                 <div className="border border-[#30363D] bg-[#0d1117] p-4">
-                  <SectionTitle eyebrow="Movement" title="Drive / prep context" meta={travelSummary} />
+                  <SectionTitle eyebrow="이동 정보" title="이동 · 준비 정보" meta={travelSummary} />
                   <div className="space-y-3">
                     <InfoRow
                       icon={Route}
-                      label="From basecamp"
+                      label="베이스캠프에서"
                       value={travelSummary}
                       muted={!selectedLocation?.basecampDrive && selectedLocation?.id !== 'pine-airbnb'}
                     />
                     <InfoRow
                       icon={ArrowRight}
-                      label="Why this matters"
+                      label="포함 이유"
                       value={getMealContextNarrative(selectedMeal, selectedLocation, linkedMission)}
                       muted
                     />
@@ -3082,7 +3179,7 @@ function MealsPage({ doc, selection, onSelectEntity, onToggleMealStatus, onUpdat
 
             {media.length ? (
               <div className="mt-5 border border-[#30363D] bg-[#161b22] p-5">
-                <SectionTitle eyebrow="Visual Intel" title="Venue references" meta={`${media.length} asset${media.length > 1 ? 's' : ''}`} />
+                <SectionTitle eyebrow="장소 이미지" title="장소 이미지" meta={`${media.length}개 이미지`} />
                 <div className="grid gap-4 md:grid-cols-3">
                   {media.map((item) => (
                     <a
@@ -3110,11 +3207,11 @@ function MealsPage({ doc, selection, onSelectEntity, onToggleMealStatus, onUpdat
 
             <div className="mt-5">
               <PageNotesCard
-                title="Feeding note"
+                title="식사 메모"
                 value={getPageNote(doc, 'meals')}
                 onChange={(value) => onUpdatePageNote('meals', value)}
                 onConvert={() => onConvertPageNote('meals')}
-                placeholder="Capture grocery strategy, allergy notes, kid fallback meals, or timing calls for restaurant stops..."
+                placeholder="장보기 전략, 알레르기 메모, 아이 대체 식사, 식당 타이밍 결정 등 기록..."
               />
             </div>
           </>
@@ -3182,7 +3279,7 @@ function ActivitiesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onCo
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[360px_minmax(560px,1fr)] overflow-hidden">
       <div className="overflow-y-auto border-r border-[#30363D] bg-[#161b22] p-6">
-        <SectionTitle eyebrow="Activity Board" title="Day missions" meta={`${doc.activities.length} tracked`} />
+        <SectionTitle eyebrow="활동 현황" title="일별 활동" meta={`${doc.activities.length} tracked`} />
         <div className="space-y-4">
           {doc.activities.map((activity) => (
             <SelectableCard
@@ -3206,12 +3303,12 @@ function ActivitiesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onCo
           ))}
         </div>
         <div className="mt-5 border border-[#30363D] bg-[#0d1117] p-4">
-          <SectionTitle eyebrow="Planner" title="Add activity" />
+          <SectionTitle eyebrow="계획" title="활동 추가" />
           <div className="space-y-3">
             <input
               value={draftTitle}
               onChange={(event) => setDraftTitle(event.target.value)}
-              placeholder="Activity title"
+              placeholder="활동 제목"
               className="w-full border border-[#30363D] bg-[#161b22] px-3 py-2 text-[11px] text-[#C9D1D9] outline-none focus:border-[#58A6FF]"
             />
             <div className="grid grid-cols-[110px_1fr] gap-2">
@@ -3229,14 +3326,14 @@ function ActivitiesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onCo
               <input
                 value={draftWindow}
                 onChange={(event) => setDraftWindow(event.target.value)}
-                placeholder="Window label"
+                placeholder="시간대 라벨"
                 className="w-full border border-[#30363D] bg-[#161b22] px-3 py-2 text-[11px] text-[#C9D1D9] outline-none focus:border-[#58A6FF]"
               />
             </div>
             <NotesBox
               value={draftDescription}
               onChange={setDraftDescription}
-              placeholder="Short description or planning purpose..."
+              placeholder="간단한 설명 또는 계획 목적..."
             />
             <button
               type="button"
@@ -3282,7 +3379,7 @@ function ActivitiesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onCo
                 {selectedLocation?.externalUrl ? (
                   <IntelAction
                     icon={MapPin}
-                    label="Open location"
+                    label="장소 열기"
                     onClick={() => window.open(selectedLocation.externalUrl, '_blank', 'noreferrer')}
                   />
                 ) : null}
@@ -3297,19 +3394,19 @@ function ActivitiesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onCo
               </div>
 
               <div className="border border-[#30363D] bg-[#0d1117] p-4">
-                <SectionTitle eyebrow="Mission Frame" title="Why this day matters" />
+                <SectionTitle eyebrow="오늘의 미션" title="오늘의 의미" />
                 <div className="space-y-3">
-                  <InfoRow icon={ArrowRight} label="Core plan" value={selectedActivity.description} />
-                  <InfoRow icon={MapPin} label="Anchor location" value={selectedLocation?.title || 'No anchor location set'} />
-                  <InfoRow icon={Search} label="Research read" value={research?.headline || selectedActivity.note || 'Build the mission details for this day.'} muted />
-                  <InfoRow icon={Settings} label="Fallback" value={selectedActivity.backup} muted />
+                  <InfoRow icon={ArrowRight} label="핵심 계획" value={selectedActivity.description} />
+                  <InfoRow icon={MapPin} label="거점 장소" value={selectedLocation?.title || '거점 장소 미설정'} />
+                  <InfoRow icon={Search} label="조사 메모" value={research?.headline || selectedActivity.note || '이 날의 미션 세부 내용을 입력하세요.'} muted />
+                  <InfoRow icon={Settings} label="대안 계획" value={selectedActivity.backup} muted />
                 </div>
               </div>
             </div>
 
             {selectedActivity.id === 'thu-transit' && selectedTransitPlan ? (
               <div className="mt-5 border border-[#30363D] bg-[#161b22] p-5">
-                <SectionTitle eyebrow="Transit Planning" title="Family road trips" meta={`${transitFamilies.length} active routes`} />
+                <SectionTitle eyebrow="이동 계획" title="가족별 이동" meta={`${transitFamilies.length} active routes`} />
                 <div className="mb-4 flex flex-wrap gap-2">
                   {transitFamilies.map((entry) => (
                     <button
@@ -3332,28 +3429,32 @@ function ActivitiesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onCo
                 </div>
                 <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
                   <div className="border border-[#30363D] bg-[#0d1117] p-4">
-                    <SectionTitle eyebrow="Selected Family" title={selectedTransitPlan.family.title} meta={selectedTransitPlan.family.eta} />
+                    <SectionTitle eyebrow="선택된 가족" title={selectedTransitPlan.family.title} meta={selectedTransitPlan.family.eta} />
                     <div className="space-y-3">
-                      <InfoRow icon={MapPin} label="Origin" value={selectedTransitPlan.family.origin} />
-                      <InfoRow icon={Route} label="Route read" value={selectedTransitPlan.family.routeSummary} muted />
-                      <InfoRow icon={Users} label="Vehicle / group" value={`${selectedTransitPlan.family.vehicle} · ${selectedTransitPlan.family.headcount}`} />
+                      <InfoRow icon={MapPin} label="출발지" value={selectedTransitPlan.family.origin} />
+                      <InfoRow icon={Route} label="경로 요약" value={selectedTransitPlan.family.routeSummary} muted />
+                      <InfoRow
+                        icon={Users}
+                        label="차량 / 인원"
+                        value={`${selectedTransitPlan.family.vehicle} · ${getFamilyHeadcountLabel(selectedTransitPlan.family)}`}
+                      />
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2">
                       <IntelAction
                         icon={Users}
-                        label="Inspect family"
+                        label="가족 상세"
                         onClick={() => onSelectEntity('family', selectedTransitPlan.family.id)}
                       />
                       <IntelAction
                         icon={Route}
-                        label="Inspect route"
+                        label="경로 상세"
                         onClick={() => onSelectEntity('route', selectedTransitPlan.route.id)}
                         tone="amber"
                       />
                     </div>
                   </div>
                   <div className="border border-[#30363D] bg-[#0d1117] p-4">
-                    <SectionTitle eyebrow="Road-trip Stops" title="Good break points" meta={`${selectedTransitPlan.stops.length} planned`} />
+                    <SectionTitle eyebrow="경유지 계획" title="경유지" meta={`${selectedTransitPlan.stops.length} planned`} />
                     {selectedTransitPlan.stops.length ? (
                       <div className="grid gap-3 md:grid-cols-2">
                         {selectedTransitPlan.stops.map((stop) => (
@@ -3361,7 +3462,7 @@ function ActivitiesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onCo
                         ))}
                       </div>
                     ) : (
-                      <div className="text-[11px] text-[#8B949E]">No stop plan attached to this route yet.</div>
+                      <div className="text-[11px] text-[#8B949E]">이 경로에 경유지 계획이 없습니다.</div>
                     )}
                   </div>
                 </div>
@@ -3381,11 +3482,11 @@ function ActivitiesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onCo
 
             <div className="mt-5">
               <PageNotesCard
-                title="Activities note"
+                title="활동 메모"
                 value={getPageNote(doc, 'activities')}
                 onChange={(value) => onUpdatePageNote('activities', value)}
                 onConvert={() => onConvertPageNote('activities')}
-                placeholder="Capture alternate plans, micro-itineraries, weather triggers, or new activity ideas..."
+                placeholder="대체 계획, 세부 일정, 날씨 대응 트리거, 새 활동 아이디어 등 기록..."
               />
             </div>
           </>
@@ -3437,8 +3538,8 @@ function ExpensesPage({
   const payerOptions = useMemo(
     () => [
       ...doc.families.map((family) => family.title),
-      'Each family',
-      'Unassigned',
+      '전체 가족',
+      '미지정',
     ],
     [doc.families],
   )
@@ -3488,13 +3589,13 @@ function ExpensesPage({
     <div className="grid min-h-0 flex-1 grid-cols-[minmax(420px,0.95fr)_minmax(440px,1.05fr)] overflow-hidden">
       <div className="overflow-y-auto border-r border-[#30363D] bg-[#161b22] p-6">
         <div className="mb-3 flex items-start justify-between gap-3">
-          <SectionTitle eyebrow="Shared Costs" title="Expense ledger" meta="Editable + split-aware" />
+          <SectionTitle eyebrow="공동 비용" title="비용 내역" meta="편집 가능 · 분담 지원" />
           <button
             type="button"
             onClick={onAddExpense}
             className="border border-[#58A6FF]/40 bg-[#58A6FF]/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#C9D1D9]"
           >
-            Add expense
+            비용 추가
           </button>
         </div>
         {currentFamily ? (
@@ -3504,11 +3605,11 @@ function ExpensesPage({
         ) : null}
         <div className="mb-5 grid grid-cols-2 gap-3">
           <div className="border border-[#30363D] bg-[#0d1117] p-4">
-            <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-[#8B949E]">Total tracked</div>
+            <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-[#8B949E]">총 지출</div>
             <div className="text-[20px] font-black text-[#C9D1D9]">{formatCurrency(total)}</div>
           </div>
           <div className="border border-[#30363D] bg-[#0d1117] p-4">
-            <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-[#8B949E]">Outstanding</div>
+            <div className="mb-1 text-[10px] font-black uppercase tracking-widest text-[#8B949E]">미정산</div>
             <div className="text-[20px] font-black text-[#D29922]">{formatCurrency(outstanding)}</div>
           </div>
         </div>
@@ -3538,15 +3639,15 @@ function ExpensesPage({
                 </div>
                 {(expense.createdByFamilyId || expense.lastEditedByFamilyId) ? (
                   <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[#58A6FF]">
-                    {expense.createdByFamilyId ? `Created by ${getFamilyLabel(doc.families, expense.createdByFamilyId)}` : ''}
+                    {expense.createdByFamilyId ? `작성: ${getFamilyLabel(doc.families, expense.createdByFamilyId)}` : ''}
                     {expense.createdByFamilyId && expense.lastEditedByFamilyId ? ' · ' : ''}
-                    {expense.lastEditedByFamilyId ? `Edited by ${getFamilyLabel(doc.families, expense.lastEditedByFamilyId)}` : ''}
+                    {expense.lastEditedByFamilyId ? `수정: ${getFamilyLabel(doc.families, expense.lastEditedByFamilyId)}` : ''}
                   </div>
                 ) : null}
               </div>
               <div className="min-w-0 text-[11px] text-[#C9D1D9]">
                 {expense.allocationMode === 'individual'
-                  ? 'Not shared'
+                  ? '개별 부담'
                   : `${doc.families.length} families`}
               </div>
               <div className="font-mono text-[12px] text-[#C9D1D9]">{formatCurrency(expense.amount)}</div>
@@ -3571,18 +3672,18 @@ function ExpensesPage({
         {activeExpense ? (
           <>
             <SectionTitle
-              eyebrow="Selected Expense"
+              eyebrow="선택된 비용"
               title={activeExpense.title}
               meta={activeExpense.settled ? 'Settled' : 'Open'}
             />
             {(activeExpense.createdByFamilyId || activeExpense.lastEditedByFamilyId) ? (
               <div className="mb-4 border border-[#30363D] bg-[#161b22] px-3 py-2 text-[11px] text-[#8B949E]">
                 {activeExpense.createdByFamilyId ? (
-                  <span>Created by <span className="font-bold text-[#C9D1D9]">{getFamilyLabel(doc.families, activeExpense.createdByFamilyId)}</span></span>
+                  <span>작성: <span className="font-bold text-[#C9D1D9]">{getFamilyLabel(doc.families, activeExpense.createdByFamilyId)}</span></span>
                 ) : null}
                 {activeExpense.createdByFamilyId && activeExpense.lastEditedByFamilyId ? ' · ' : null}
                 {activeExpense.lastEditedByFamilyId ? (
-                  <span>Last edited by <span className="font-bold text-[#C9D1D9]">{getFamilyLabel(doc.families, activeExpense.lastEditedByFamilyId)}</span></span>
+                  <span>수정: <span className="font-bold text-[#C9D1D9]">{getFamilyLabel(doc.families, activeExpense.lastEditedByFamilyId)}</span></span>
                 ) : null}
               </div>
             ) : null}
@@ -3623,8 +3724,8 @@ function ExpensesPage({
                       <input
                         value={customPayerDraft}
                         onChange={(event) => setCustomPayerDraft(event.target.value)}
-                        onBlur={() => onUpdateExpenseFields(activeExpense.id, { payer: customPayerDraft.trim() || 'Unassigned' })}
-                        placeholder="Custom payer label"
+                        onBlur={() => onUpdateExpenseFields(activeExpense.id, { payer: customPayerDraft.trim() || '미지정' })}
+                        placeholder="결제자 직접 입력"
                         className="border border-[#30363D] bg-[#161b22] px-3 py-2 text-[11px] text-[#C9D1D9] outline-none focus:border-[#58A6FF]"
                       />
                     ) : null}
@@ -3660,12 +3761,12 @@ function ExpensesPage({
               </div>
 
               <div className="border border-[#30363D] bg-[#161b22] p-4">
-                <SectionTitle eyebrow="Split Mode" title="Family allocation" meta={EXPENSE_SPLIT_LABELS[activeExpense.allocationMode] || activeExpense.split} />
+                <SectionTitle eyebrow="분담 방식" title="가족별 부담" meta={EXPENSE_SPLIT_LABELS[activeExpense.allocationMode] || activeExpense.split} />
                 <div className="mb-4 flex flex-wrap gap-2">
                   {[
-                    { id: 'equal', label: 'Equal split' },
-                    { id: 'manual', label: 'Manual allocation' },
-                    { id: 'individual', label: 'Individual' },
+                    { id: 'equal', label: '균등 분할' },
+                    { id: 'manual', label: '수동 배분' },
+                    { id: 'individual', label: '개별 부담' },
                   ].map((mode) => (
                     <button
                       key={mode.id}
@@ -3735,18 +3836,18 @@ function ExpensesPage({
                             onClick={() => onResetExpenseAllocationsToEqual(activeExpense.id)}
                             className="border border-[#30363D] bg-[#161b22] px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#C9D1D9]"
                           >
-                            Reset to equal
+                            균등 분할로 초기화
                           </button>
                         </div>
                         {Math.abs(allocationDelta) > 0.009 ? (
                           <div className="border border-[#D29922]/30 bg-[#D29922]/10 px-3 py-2 text-[11px] text-[#D29922]">
                             {allocationDelta > 0
-                              ? `${formatCurrency(allocationDelta)} still unassigned.`
-                              : `${formatCurrency(Math.abs(allocationDelta))} over-assigned. Adjust the family shares.`}
+                              ? `${formatCurrency(allocationDelta)} 아직 미배정.`
+                              : `${formatCurrency(Math.abs(allocationDelta))} 초과 배정. 가족별 금액을 조정해주세요.`}
                           </div>
                         ) : (
                           <div className="border border-[#3FB950]/30 bg-[#3FB950]/10 px-3 py-2 text-[11px] text-[#3FB950]">
-                            Manual allocation matches the total exactly.
+                            수동 배분 금액이 합계와 정확히 일치합니다.
                           </div>
                         )}
                       </>
@@ -3769,7 +3870,7 @@ function ExpensesPage({
         ) : null}
 
         <div className="mb-6 border border-[#30363D] bg-[#161b22] p-4">
-          <SectionTitle eyebrow="Shared Burden" title="Per-family exposure" />
+          <SectionTitle eyebrow="공동 부담" title="가족별 비용" />
           <div className="grid gap-2">
             {familyBurden.map((entry) => (
               <div
@@ -3784,11 +3885,11 @@ function ExpensesPage({
         </div>
 
         <PageNotesCard
-          title="Expenses note"
+          title="비용 메모"
           value={getPageNote(doc, 'expenses')}
           onChange={(value) => onUpdatePageNote('expenses', value)}
           onConvert={() => onConvertPageNote('expenses')}
-          placeholder="Capture split assumptions, cash items, or things to settle after the trip..."
+          placeholder="분담 가정, 현금 항목, 여행 후 정산 사항 등 기록..."
         />
       </div>
     </div>
@@ -3799,21 +3900,21 @@ function FamiliesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onConv
   return (
     <div className="grid min-h-0 flex-1 grid-cols-[360px_1fr] overflow-hidden">
       <div className="overflow-y-auto border-r border-[#30363D] bg-[#161b22] p-6">
-        <SectionTitle eyebrow="Travel Units" title="Family roster" />
+        <SectionTitle eyebrow="이동 가족" title="가족 현황" />
         <FamilyList doc={doc} selection={selection} onSelectEntity={onSelectEntity} />
         <div className="mt-5">
           <PageNotesCard
-            title="Families note"
+            title="가족 메모"
             value={getPageNote(doc, 'families')}
             onChange={(value) => onUpdatePageNote('families', value)}
             onConvert={() => onConvertPageNote('families')}
-            placeholder="Capture cross-family coordination details..."
+            placeholder="가족 간 협조 세부 사항 기록..."
           />
         </div>
       </div>
 
       <div className="overflow-y-auto bg-[#0d1117] p-6">
-        <SectionTitle eyebrow="Readiness" title="Family task posture" />
+        <SectionTitle eyebrow="준비 현황" title="가족별 할 일" />
         <div className="grid gap-4">
           {doc.families.map((family) => {
             const tasks = getTasksByFamily(doc, family.id)
@@ -3857,6 +3958,291 @@ function FamiliesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onConv
   )
 }
 
+function FamiliesWorkspacePage({
+  doc,
+  tripMeta,
+  selection,
+  currentFamilyId,
+  onSelectEntity,
+  onSetActiveFamily,
+  onUpdatePageNote,
+  onConvertPageNote,
+  onUpdateTripMeta,
+  onUpdateFamilyFields,
+  onAddFamily,
+}) {
+  const selectedFamily =
+    doc.families.find((family) => selection.type === 'family' && selection.id === family.id) || doc.families[0] || null
+  const familyTasks = selectedFamily ? getTasksByFamily(doc, selectedFamily.id) : []
+  const readiness = selectedFamily ? getFamilyReadiness(doc, selectedFamily.id) : 0
+  const tripProfile = tripMeta || doc.tripMeta || {}
+  const statusOptions = [...new Set([
+    selectedFamily?.status,
+    'Pending',
+    'Transit',
+    'Assigned',
+    'Go',
+    'Watch',
+  ].filter(Boolean))].map((value) => ({ value, label: value }))
+  const dayOptions = DAYS.map((day) => ({
+    value: day.id,
+    label: `${day.shortLabel} - ${day.title}`,
+  }))
+
+  return (
+    <div className="grid min-h-0 flex-1 grid-cols-[380px_1fr] overflow-hidden">
+      <div className="overflow-y-auto border-r border-[#30363D] bg-[#161b22] p-6">
+        <SectionTitle eyebrow="여행 설정" title="여행 정보" />
+        <div className="space-y-4 border border-[#30363D] bg-[#0d1117] p-4">
+          <div>
+            <FieldLabel>Trip title</FieldLabel>
+            <TextField
+              value={tripProfile.title || ''}
+              onChange={(value) => onUpdateTripMeta({ title: value })}
+              placeholder="여행 제목 입력"
+            />
+          </div>
+          <div>
+            <FieldLabel>Trip dates</FieldLabel>
+            <TextField
+              value={tripProfile.subtitle || ''}
+              onChange={(value) => onUpdateTripMeta({ subtitle: value })}
+              placeholder="8월 15일 - 8월 17일"
+            />
+          </div>
+          <div>
+            <FieldLabel>Header name</FieldLabel>
+            <TextField
+              value={tripProfile.commandName || ''}
+              onChange={(value) => onUpdateTripMeta({ commandName: value })}
+              placeholder="여행매니저"
+            />
+          </div>
+        </div>
+
+        <div className="mt-6">
+          <SectionTitle eyebrow="이동 가족" title="가족 현황" meta={`${doc.families.length} families`} />
+          <div className="mb-3 flex justify-end">
+            <button
+              type="button"
+              onClick={onAddFamily}
+              className="border border-[#30363D] bg-[#0d1117] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#C9D1D9] transition-colors hover:border-[#58A6FF]/40 hover:text-[#58A6FF]"
+            >
+              가족 추가
+            </button>
+          </div>
+          <FamilyList doc={doc} selection={selection} onSelectEntity={onSelectEntity} />
+        </div>
+
+        <div className="mt-5">
+          <PageNotesCard
+            title="가족 메모"
+            value={getPageNote(doc, 'families')}
+            onChange={(value) => onUpdatePageNote('families', value)}
+            onConvert={() => onConvertPageNote('families')}
+            placeholder="인원 변경, 도착 예상, 공유 메모 등을 입력하세요..."
+          />
+        </div>
+      </div>
+
+      <div className="overflow-y-auto bg-[#0d1117] p-6">
+        {selectedFamily ? (
+          <div className="space-y-5">
+            <div className="border border-[#30363D] bg-[#161b22] p-5">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-[0.18em] text-[#58A6FF]">
+                    Family editor
+                  </div>
+                  <div className="mt-2 text-[22px] font-black uppercase tracking-[0.08em] text-[#E6EDF3]">
+                    {selectedFamily.title}
+                  </div>
+                  <div className="mt-2 text-[12px] text-[#8B949E]">
+                    Update who is going, when they arrive, and what this family owns.
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedFamily.id === currentFamilyId ? (
+                    <div className="border border-[#58A6FF]/40 bg-[#58A6FF]/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#C9D1D9]">
+                      Active editor profile
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onSetActiveFamily(selectedFamily.id)}
+                      className="border border-[#30363D] bg-[#0d1117] px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#C9D1D9] transition-colors hover:border-[#58A6FF]/40 hover:text-[#58A6FF]"
+                    >
+                      Use as editor profile
+                    </button>
+                  )}
+                  <StatusPill tone={selectedFamily.status}>{selectedFamily.status}</StatusPill>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-3 md:grid-cols-3">
+                <StatTile label="인원" value={getFamilyHeadcountLabel(selectedFamily)} tone="accent" />
+                <StatTile label="준비도" value={`${readiness}%`} tone={readiness >= 80 ? 'success' : 'default'} />
+                <StatTile label="미완료" value={`${familyTasks.filter((task) => task.status !== 'done').length}`} />
+              </div>
+            </div>
+
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+              <div className="space-y-5">
+                <div className="border border-[#30363D] bg-[#161b22] p-5">
+                  <SectionTitle eyebrow="구성원" title="가족 상세" />
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <FieldLabel>Family label</FieldLabel>
+                      <TextField
+                        value={selectedFamily.title || ''}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { title: value, name: value })}
+                        placeholder="홍씨 가족"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Short tag</FieldLabel>
+                      <TextField
+                        value={selectedFamily.shortOrigin || ''}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { shortOrigin: value })}
+                        placeholder="서울"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Origin city</FieldLabel>
+                      <TextField
+                        value={selectedFamily.origin || ''}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { origin: value })}
+                        placeholder="서울"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Origin detail</FieldLabel>
+                      <TextField
+                        value={selectedFamily.originAddress || ''}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { originAddress: value })}
+                        placeholder="공항 픽업 또는 출발 동네"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Arrival day</FieldLabel>
+                      <SelectField
+                        value={selectedFamily.arrivalDayId || dayOptions[0]?.value || 'thu'}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { arrivalDayId: value })}
+                        options={dayOptions}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>ETA</FieldLabel>
+                      <TextField
+                        value={selectedFamily.eta || ''}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { eta: value })}
+                        placeholder="2:00 PM"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Vehicle</FieldLabel>
+                      <TextField
+                        value={selectedFamily.vehicle || ''}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { vehicle: value })}
+                        placeholder="렌터카"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Call sign</FieldLabel>
+                      <TextField
+                        value={selectedFamily.vehicleLabel || ''}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { vehicleLabel: value })}
+                        placeholder="차량 1"
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Adults</FieldLabel>
+                      <NumberField
+                        value={selectedFamily.adults ?? 0}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { adults: value })}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Children</FieldLabel>
+                      <NumberField
+                        value={selectedFamily.children ?? 0}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { children: value })}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>Status</FieldLabel>
+                      <SelectField
+                        value={selectedFamily.status || statusOptions[0]?.value || 'Pending'}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { status: value })}
+                        options={statusOptions}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel meta={getFamilyHeadcountLabel(selectedFamily)}>Task owner</FieldLabel>
+                      <TextField
+                        value={selectedFamily.responsibility || ''}
+                        onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { responsibility: value })}
+                        placeholder="간식, 유모차, 체크인 담당 등"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-4">
+                    <FieldLabel>Route summary</FieldLabel>
+                    <NotesBox
+                      value={selectedFamily.routeSummary || ''}
+                      onChange={(value) => onUpdateFamilyFields(selectedFamily.id, { routeSummary: value })}
+                      placeholder="도착 계획 및 경유지 메모를 입력하세요..."
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-5">
+                <div className="border border-[#30363D] bg-[#161b22] p-5">
+                  <SectionTitle eyebrow="체크리스트" title="가족 할 일" meta={`${familyTasks.length} linked`} />
+                  {familyTasks.length ? (
+                    <div className="space-y-2">
+                      {familyTasks.map((task) => (
+                        <div
+                          key={task.id}
+                          className="flex items-center justify-between border border-[#30363D] bg-[#0d1117] px-3 py-2 text-[11px]"
+                        >
+                          <span className="text-[#C9D1D9]">{task.title}</span>
+                          <span className={task.status === 'done' ? 'text-[#3FB950]' : 'text-[#D29922]'}>
+                            {task.status}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-[11px] leading-relaxed text-[#8B949E]">
+                      No tasks are directly assigned yet. You can still update the family profile now and add tasks from the inspector later.
+                    </div>
+                  )}
+                </div>
+
+                <div className="border border-[#30363D] bg-[#161b22] p-5">
+                  <SectionTitle eyebrow="요약" title="저장 내용 확인" />
+                  <div className="space-y-2 text-[11px] leading-relaxed text-[#8B949E]">
+                    <div>Trip title, dates, and header name save automatically to local storage.</div>
+                    <div>Adults and children update the family headcount immediately.</div>
+                    <div>Arrival, vehicle, and responsibility changes stay after refresh.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="border border-dashed border-[#30363D] bg-[#161b22] p-8 text-[12px] text-[#8B949E]">
+            Add a family on the left to start editing the roster.
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function withRefreshedFamilies(nextDoc) {
   return {
     ...nextDoc,
@@ -3875,7 +4261,6 @@ function App() {
   const displayDoc = useMemo(() => projectTripDocument(doc, visibilityMode), [doc, visibilityMode])
   const locationIntelHydrationRef = useRef(new Set())
   const startupTimelineSyncRef = useRef(false)
-  const seededPlanRefreshRef = useRef(false)
   const [weatherState, setWeatherState] = useState({
     status: 'loading',
     targets: {},
@@ -3886,6 +4271,7 @@ function App() {
   const selection = displayDoc.selection
   const currentFamily = displayDoc.families.find((family) => family.id === viewerProfile?.familyId) || null
   const currentFamilyId = currentFamily?.id || null
+  const tripMeta = displayDoc.tripMeta || {}
   const selectedEntity = getEntityBySelection(displayDoc, selection)
   const selectedLocation = getLocationForEntity(displayDoc, selectedEntity)
   const selectedRoute = getRouteForEntity(displayDoc, selectedEntity)
@@ -3897,6 +4283,96 @@ function App() {
   const setActiveFamilyProfile = useCallback((familyId) => {
     setViewerProfile({ familyId })
   }, [setViewerProfile])
+
+  const updateTripMeta = useCallback((patch) => {
+    setDoc((current) => ({
+      ...current,
+      tripMeta: {
+        ...(current.tripMeta || {}),
+        ...patch,
+      },
+    }))
+  }, [setDoc])
+
+  const updateFamilyFields = useCallback((familyId, patch) => {
+    if (!familyId || !patch) return
+
+    setDoc((current) => {
+      const nextFamilies = current.families.map((family) => {
+        if (family.id !== familyId) return family
+
+        const adults = toWholeNumber(
+          Object.prototype.hasOwnProperty.call(patch, 'adults') ? patch.adults : family.adults,
+          family.adults ?? 0,
+        )
+        const children = toWholeNumber(
+          Object.prototype.hasOwnProperty.call(patch, 'children') ? patch.children : family.children,
+          family.children ?? 0,
+        )
+        const nextTitle = Object.prototype.hasOwnProperty.call(patch, 'title') ? patch.title : family.title
+        const nextOrigin = Object.prototype.hasOwnProperty.call(patch, 'origin') ? patch.origin : family.origin
+
+        return stampFamilyMetadata({
+          ...family,
+          ...patch,
+          title: nextTitle,
+          name: Object.prototype.hasOwnProperty.call(patch, 'name') ? patch.name : nextTitle,
+          shortOrigin:
+            Object.prototype.hasOwnProperty.call(patch, 'shortOrigin')
+              ? patch.shortOrigin
+              : family.shortOrigin || nextOrigin,
+          origin: nextOrigin,
+          adults,
+          children,
+          headcount: formatFamilyHeadcount({ adults, children }),
+        }, currentFamilyId)
+      })
+
+      return withRefreshedFamilies({
+        ...current,
+        families: nextFamilies,
+      })
+    })
+  }, [currentFamilyId, setDoc])
+
+  const addFamily = useCallback(() => {
+    const familyId = `family-user-${Date.now()}`
+    const newFamily = stampFamilyMetadata({
+      id: familyId,
+      type: 'family',
+      title: '새 가족',
+      name: '새 가족',
+      shortOrigin: '미정',
+      origin: '미정',
+      originAddress: '',
+      originCoordinates: null,
+      arrivalDayId: DAYS[0]?.id || 'thu',
+      eta: '',
+      driveTime: '',
+      adults: 2,
+      children: 0,
+      headcount: formatFamilyHeadcount({ adults: 2, children: 0 }),
+      vehicle: '',
+      vehicleLabel: '',
+      responsibility: '',
+      readiness: 100,
+      status: '대기',
+      routeSummary: '이동 계획 미정',
+      plannedStopIds: [],
+      taskIds: [],
+      linkedEntityKeys: [],
+      note: '',
+      isCustom: true,
+    }, currentFamilyId)
+
+    setDoc((current) => withRefreshedFamilies({
+      ...current,
+      selectedPage: 'families',
+      selection: { type: 'family', id: familyId },
+      families: [...current.families, newFamily],
+    }))
+    setViewerProfile({ familyId })
+  }, [currentFamilyId, setDoc, setViewerProfile])
 
   useEffect(() => {
     if (startupTimelineSyncRef.current) return
@@ -4047,103 +4523,6 @@ function App() {
     })
   }, [doc.families, doc.locations, doc.routes, setDoc])
 
-  useEffect(() => {
-    if (seededPlanRefreshRef.current) return
-
-    const initialDoc = getInitialTripDocument()
-    const currentById = (collection) => new Map(collection.map((item) => [item.id, item]))
-    const collectionNeedsRefresh = (currentCollection, initialCollection, refreshIds) => {
-      const currentMap = currentById(currentCollection)
-      const initialMap = currentById(initialCollection)
-      return [...refreshIds].some((id) => {
-        const currentItem = currentMap.get(id)
-        const initialItem = initialMap.get(id)
-        return !currentItem || !initialItem || JSON.stringify(currentItem) !== JSON.stringify(initialItem)
-      })
-    }
-    const missingRoutes = initialDoc.routes.filter((route) => !doc.routes.some((currentRoute) => currentRoute.id === route.id))
-    const missingItineraryItems = initialDoc.itineraryItems.filter(
-      (item) => !doc.itineraryItems.some((currentItem) => currentItem.id === item.id),
-    )
-    const hasObsoleteRoutes = doc.routes.some((route) => OBSOLETE_PLAN_ROUTE_IDS.has(route.id))
-    const hasObsoleteItineraryItems = doc.itineraryItems.some((item) => OBSOLETE_PLAN_ITINERARY_IDS.has(item.id))
-    const needsPlanRefresh =
-      collectionNeedsRefresh(doc.families, initialDoc.families, SEEDED_PLAN_REFRESH_IDS.families) ||
-      collectionNeedsRefresh(doc.locations, initialDoc.locations, SEEDED_PLAN_REFRESH_IDS.locations) ||
-      collectionNeedsRefresh(doc.meals, initialDoc.meals, SEEDED_PLAN_REFRESH_IDS.meals) ||
-      collectionNeedsRefresh(doc.activities, initialDoc.activities, SEEDED_PLAN_REFRESH_IDS.activities) ||
-      collectionNeedsRefresh(doc.tasks, initialDoc.tasks, SEEDED_PLAN_REFRESH_IDS.tasks) ||
-      collectionNeedsRefresh(doc.routes, initialDoc.routes, SEEDED_PLAN_REFRESH_IDS.routes) ||
-      collectionNeedsRefresh(doc.itineraryItems, initialDoc.itineraryItems, SEEDED_PLAN_REFRESH_IDS.itineraryItems)
-
-    if (!missingRoutes.length && !missingItineraryItems.length && !hasObsoleteRoutes && !hasObsoleteItineraryItems && !needsPlanRefresh) {
-      seededPlanRefreshRef.current = true
-      return
-    }
-
-    seededPlanRefreshRef.current = true
-    setDoc((current) => {
-      const syncCollection = (currentCollection, initialCollection, refreshIds, obsoleteIds = new Set()) => {
-        const initialMap = new Map(initialCollection.map((item) => [item.id, item]))
-        const filtered = currentCollection.filter((item) => !obsoleteIds.has(item.id))
-        const existingIds = new Set(filtered.map((item) => item.id))
-        const replaced = filtered.map((item) => (refreshIds.has(item.id) && initialMap.has(item.id) ? initialMap.get(item.id) : item))
-        const additions = [...refreshIds]
-          .filter((id) => !existingIds.has(id) && initialMap.has(id))
-          .map((id) => initialMap.get(id))
-        return [...replaced, ...additions]
-      }
-
-      const nextLocations = syncCollection(
-        current.locations,
-        initialDoc.locations,
-        SEEDED_PLAN_REFRESH_IDS.locations,
-      )
-      const nextRoutes = synchronizeRoutePaths(
-        syncCollection(
-          [
-            ...current.routes,
-            ...initialDoc.routes.filter((route) => !current.routes.some((currentRoute) => currentRoute.id === route.id)),
-          ],
-          initialDoc.routes,
-          SEEDED_PLAN_REFRESH_IDS.routes,
-          OBSOLETE_PLAN_ROUTE_IDS,
-        ),
-        nextLocations,
-      )
-      const nextItineraryItems = syncCollection(
-        [
-          ...current.itineraryItems,
-          ...initialDoc.itineraryItems.filter((item) => !current.itineraryItems.some((currentItem) => currentItem.id === item.id)),
-        ],
-        initialDoc.itineraryItems,
-        SEEDED_PLAN_REFRESH_IDS.itineraryItems,
-        OBSOLETE_PLAN_ITINERARY_IDS,
-      )
-      const nextSelection =
-        (current.selection?.type === 'route' && OBSOLETE_PLAN_ROUTE_IDS.has(current.selection.id)) ||
-        (current.selection?.type === 'itineraryItem' && OBSOLETE_PLAN_ITINERARY_IDS.has(current.selection.id))
-          ? initialDoc.selection
-          : current.selection
-
-      return {
-        ...current,
-        selection: nextSelection,
-        pageNotes: {
-          ...current.pageNotes,
-          meals: initialDoc.pageNotes.meals,
-          activities: initialDoc.pageNotes.activities,
-        },
-        families: syncCollection(current.families, initialDoc.families, SEEDED_PLAN_REFRESH_IDS.families),
-        locations: nextLocations,
-        meals: syncCollection(current.meals, initialDoc.meals, SEEDED_PLAN_REFRESH_IDS.meals),
-        activities: syncCollection(current.activities, initialDoc.activities, SEEDED_PLAN_REFRESH_IDS.activities),
-        tasks: syncCollection(current.tasks, initialDoc.tasks, SEEDED_PLAN_REFRESH_IDS.tasks),
-        routes: nextRoutes,
-        itineraryItems: nextItineraryItems,
-      }
-    })
-  }, [doc.activities, doc.families, doc.itineraryItems, doc.locations, doc.meals, doc.routes, doc.tasks, setDoc])
   const searchResults = useMemo(
     () => getSearchResults(displayDoc, displayDoc.ui.searchQuery),
     [displayDoc],
@@ -4796,8 +5175,8 @@ function App() {
       const newExpense = stampFamilyMetadata({
         id: `expense-user-${Date.now()}`,
         type: 'expense',
-        title: 'New shared expense',
-        payer: currentFamilyId ? familyLabel : 'Unassigned',
+        title: '새 공동 지출',
+        payer: currentFamilyId ? familyLabel : '미지정',
         amount: 0,
         split: EXPENSE_SPLIT_LABELS.equal,
         allocationMode: 'equal',
@@ -4843,18 +5222,30 @@ function App() {
     }))
   }
 
+  const resetAllData = () => {
+    if (!window.confirm('모든 데이터를 초기화하고 기본값으로 되돌립니다.\n저장된 가족, 비용, 메모 등이 모두 삭제됩니다.\n계속하시겠습니까?')) return
+    try {
+      localStorage.removeItem('trip-command-center/v4-public')
+      localStorage.removeItem('trip-command-center/viewer/v4-public')
+      localStorage.removeItem('notion_config')
+      localStorage.removeItem('onboarding_dismissed_v1')
+    } catch {}
+    window.location.reload()
+  }
+
   const exportState = () => {
     const blob = new Blob([JSON.stringify(displayDoc, null, 2)], { type: 'application/json' })
     const url = window.URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = 'pine-mountain-lake-command-center.json'
+    anchor.download = `${(tripMeta.commandName || 'family-trip-command-center').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'family-trip-command-center'}.json`
     anchor.click()
     window.URL.revokeObjectURL(url)
   }
 
   const pageProps = {
     doc: displayDoc,
+    tripMeta,
     selection,
     currentFamily,
     currentFamilyId,
@@ -4897,7 +5288,15 @@ function App() {
       />
     )
   } else if (displayDoc.selectedPage === 'families') {
-    content = <FamiliesPage {...pageProps} />
+    content = (
+      <FamiliesWorkspacePage
+        {...pageProps}
+        onSetActiveFamily={setActiveFamilyProfile}
+        onUpdateTripMeta={updateTripMeta}
+        onUpdateFamilyFields={updateFamilyFields}
+        onAddFamily={addFamily}
+      />
+    )
   }
 
   const mainWithInspector = (
@@ -4920,20 +5319,50 @@ function App() {
     </div>
   )
 
+  const {
+    config: notionConfig,
+    saveConfig: saveNotionConfig,
+    syncStatus: notionSyncStatus,
+    syncError: notionSyncError,
+    testConnection: testNotionConnection,
+  } = useNotionSync()
+
+  const [showNotionTutorial, setShowNotionTutorial] = useState(false)
+
   return (
-    <AppShell
-      doc={displayDoc}
-      onSetSelectedPage={setSelectedPage}
-      onExport={exportState}
-      onSearchChange={updateSearchQuery}
-      searchResults={searchResults}
-      onOpenEntity={openEntity}
-      families={displayDoc.families}
-      activeFamily={currentFamily}
-      onSetActiveFamily={setActiveFamilyProfile}
-    >
-      {mainWithInspector}
-    </AppShell>
+    <>
+      <AppShell
+        doc={displayDoc}
+        tripMeta={tripMeta}
+        onSetSelectedPage={setSelectedPage}
+        onExport={exportState}
+        onSearchChange={updateSearchQuery}
+        searchResults={searchResults}
+        onOpenEntity={openEntity}
+        families={displayDoc.families}
+        activeFamily={currentFamily}
+        onSetActiveFamily={setActiveFamilyProfile}
+        onOpenNotionSetup={() => setShowNotionTutorial(true)}
+        notionSyncStatus={notionSyncStatus}
+        onReset={resetAllData}
+        onAddFamily={addFamily}
+      >
+        {mainWithInspector}
+      </AppShell>
+
+      <OnboardingGuide onOpenNotionSetup={() => setShowNotionTutorial(true)} />
+
+      {showNotionTutorial && (
+        <NotionSetupTutorial
+          onClose={() => setShowNotionTutorial(false)}
+          notionConfig={notionConfig}
+          onSaveConfig={saveNotionConfig}
+          onTestConnection={testNotionConnection}
+          syncStatus={notionSyncStatus}
+          syncError={notionSyncError}
+        />
+      )}
+    </>
   )
 }
 

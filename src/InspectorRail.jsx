@@ -28,14 +28,21 @@ function pillClasses(tone) {
     case 'done':
     case 'Go':
     case 'Settled':
+    case '완료':
+    case '실행':
       return 'border-[#3FB950]/30 bg-[#3FB950]/10 text-[#3FB950]'
     case 'Watch':
     case 'Pending':
     case 'open':
+    case '주의':
+    case '대기':
       return 'border-[#D29922]/30 bg-[#D29922]/10 text-[#D29922]'
     case 'Assigned':
     case 'Transit':
     case 'Friday Arrival':
+    case '확정':
+    case '이동 중':
+    case '금요일 합류':
       return 'border-[#58A6FF]/30 bg-[#58A6FF]/10 text-[#58A6FF]'
     default:
       return 'border-[#30363D] bg-[#0d1117] text-[#C9D1D9]'
@@ -150,20 +157,20 @@ function getStopVisual(stop) {
     return {
       icon: UtensilsCrossed,
       tone: 'text-[#D29922] border-[#D29922]/30 bg-[#D29922]/10',
-      eyebrow: 'Lunch anchor',
+      eyebrow: '점심 거점',
     }
   }
   if (stopType.includes('break')) {
     return {
       icon: Coffee,
       tone: 'text-[#58A6FF] border-[#58A6FF]/30 bg-[#58A6FF]/10',
-      eyebrow: 'Reset stop',
+      eyebrow: '기본 경유지',
     }
   }
   return {
     icon: MapPin,
     tone: 'text-[#8B949E] border-[#30363D] bg-[#0d1117]',
-    eyebrow: 'Drive stop',
+    eyebrow: '경유지',
   }
 }
 
@@ -435,7 +442,7 @@ export default function InspectorRail({
   if (entity.type === 'meal') {
     actionChips.push({
       icon: CheckSquare,
-      label: entity.status === 'Assigned' ? 'Mark pending' : 'Mark assigned',
+      label: entity.status === 'Assigned' ? '대기로 표시' : '확정으로 표시',
       onClick: () => onToggleMealStatus(entity.id),
       tone: entity.status === 'Assigned' ? 'warning' : 'success',
     })
@@ -443,7 +450,7 @@ export default function InspectorRail({
   if (entity.type === 'expense') {
     actionChips.push({
       icon: Receipt,
-      label: entity.settled ? 'Mark open' : 'Mark settled',
+      label: entity.settled ? '미정산으로 표시' : '정산 완료로 표시',
       onClick: () => onToggleExpenseSettled(entity.id),
       tone: entity.settled ? 'warning' : 'success',
     })
@@ -451,7 +458,7 @@ export default function InspectorRail({
   if (entity.type === 'task') {
     actionChips.push({
       icon: entity.status === 'done' ? Square : CheckSquare,
-      label: entity.status === 'done' ? 'Mark open' : 'Mark done',
+      label: entity.status === 'done' ? '미완료로 변경' : '완료로 표시',
       onClick: () => onToggleTask(entity.id),
       tone: entity.status === 'done' ? 'warning' : 'success',
     })
@@ -459,14 +466,14 @@ export default function InspectorRail({
   if (location && entity.type !== 'location') {
     actionChips.push({
       icon: MapPin,
-      label: 'Inspect location',
+      label: '장소 상세보기',
       onClick: () => onSelectEntity('location', location.id),
     })
   }
   if (externalTarget?.externalUrl) {
     actionChips.push({
       icon: ExternalLink,
-      label: 'Open external',
+      label: '외부 링크',
       onClick: () => window.open(externalTarget.externalUrl, '_blank', 'noreferrer'),
     })
   }
@@ -532,7 +539,7 @@ export default function InspectorRail({
         {familyDriveMode ? (
           <section className="border border-[#30363D] bg-[#161b22]">
             <div className="border-b border-[#30363D] px-4 py-3">
-              <SectionTitle eyebrow="Road Trip" title="Inbound stop plan" meta={`${driveStops.length} stop${driveStops.length > 1 ? 's' : ''}`} />
+              <SectionTitle eyebrow="이동 경로" title="경유지 계획" meta={`${driveStops.length}개 경유지`} />
             </div>
             <div className="border-b border-[#30363D]/30 px-4 py-4">
               <div className="grid grid-cols-2 gap-3">
@@ -560,7 +567,7 @@ export default function InspectorRail({
 
         <section className="border border-[#30363D] bg-[#161b22] p-4">
           <SectionTitle
-            eyebrow={compactRailMode ? 'Selected item' : 'Briefing'}
+            eyebrow={compactRailMode ? '선택 항목' : '브리핑'}
             title={
               compactMealsMode
                 ? 'Context snapshot'
@@ -600,7 +607,7 @@ export default function InspectorRail({
               {detailRows.length ? detailRows.map(([label, value]) => (
                 <DetailRow key={label} label={label} value={value} />
               )) : (
-                <div className="text-[11px] text-[#8B949E]">No additional logistics attached.</div>
+                <div className="text-[11px] text-[#8B949E]">추가 세부정보 없음</div>
               )}
             </div>
           ) : null}
@@ -608,7 +615,7 @@ export default function InspectorRail({
 
         {(compactStayMode || compactActivitiesMode) && detailRows.length ? (
           <section className="border border-[#30363D] bg-[#161b22] p-4">
-            <SectionTitle eyebrow="Details" title={compactActivitiesMode ? 'Activity intel' : 'Selected item intel'} />
+            <SectionTitle eyebrow="상세정보" title={compactActivitiesMode ? '활동 정보' : '선택 항목 정보'} />
             <div className="space-y-0">
               {detailRows.map(([label, value]) => (
                 <DetailRow key={label} label={label} value={value} />
@@ -620,7 +627,7 @@ export default function InspectorRail({
         {(entity.type === 'family' || entity.type === 'itineraryItem' || entity.type === 'route') && driveStops.length && !familyDriveMode ? (
           <section className="border border-[#30363D] bg-[#161b22]">
             <div className="border-b border-[#30363D] px-4 py-3">
-              <SectionTitle eyebrow="Drive Plan" title="Planned stops" meta={`${driveStops.length} stop${driveStops.length > 1 ? 's' : ''}`} />
+              <SectionTitle eyebrow="이동 계획" title="경유지 목록" meta={`${driveStops.length}개 경유지`} />
             </div>
             {driveStops.map((stop) => (
               <DriveStopEditor
@@ -636,7 +643,7 @@ export default function InspectorRail({
         {!compactMealsMode && !compactActivitiesMode && !familyDriveMode ? (
           <section className="border border-[#30363D] bg-[#161b22]">
             <div className="border-b border-[#30363D] px-4 py-3">
-              <SectionTitle eyebrow="Checklist" title="Planning tasks" meta={taskCompletion} />
+              <SectionTitle eyebrow="체크리스트" title="할 일 목록" meta={taskCompletion} />
             </div>
             <div className="p-4">
               {prompts.length ? (
@@ -657,7 +664,7 @@ export default function InspectorRail({
                 </div>
               ) : (
                 <div className="mb-4 text-[11px] text-[#8B949E]">
-                  No linked tasks yet. Add one below if this item needs follow-up.
+                  연결된 할 일이 없습니다. 아래에서 추가하세요.
                 </div>
               )}
               <div className="flex gap-2">
@@ -685,7 +692,7 @@ export default function InspectorRail({
 
         {location && !compactRailMode ? (
           <section className="border border-[#30363D] bg-[#161b22] p-4">
-            <SectionTitle eyebrow="Location Intel" title={location.title} />
+            <SectionTitle eyebrow="장소 정보" title={location.title} />
             <div className="mb-3 space-y-2 text-[11px] text-[#C9D1D9]">
               <div className="flex items-start gap-2">
                 <MapPin size={13} className="mt-0.5 text-[#58A6FF]" />
@@ -737,7 +744,7 @@ export default function InspectorRail({
 
         <section className="border border-[#30363D] bg-[#161b22] p-4">
           <SectionTitle
-            eyebrow="Notes"
+            eyebrow="메모"
             title={
               compactMealsMode
                 ? 'Planning notes'
@@ -766,10 +773,10 @@ export default function InspectorRail({
             onChange={(event) => onUpdateEntityNote(entity.type, entity.id, event.target.value)}
             placeholder={
               compactMealsMode
-                ? 'Capture decisions, venue-specific notes, or quick follow-ups that belong beside the Meals page intel...'
+                ? '식사 결정 사항, 장소별 메모, 후속 조치를 입력하세요...'
                 : compactActivitiesMode
-                  ? 'Capture detailed notes, options to research, kid-specific constraints, or a more opinionated plan for this activity...'
-                : 'Capture planning notes, constraints, decisions, or reminders...'
+                  ? '활동 세부 메모, 조사할 옵션, 아이 관련 제약 사항 등을 입력하세요...'
+                : '계획 메모, 제약 사항, 결정 사항 또는 리마인더를 입력하세요...'
             }
             className="min-h-24 w-full resize-none border border-[#30363D] bg-[#0d1117] px-3 py-2 text-[11px] leading-relaxed text-[#C9D1D9] outline-none focus:border-[#58A6FF]"
           />
