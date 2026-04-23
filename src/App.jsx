@@ -936,110 +936,95 @@ function AppShell({
 }) {
   return (
     <div className="relative flex h-screen w-screen overflow-hidden bg-[#0d1117] font-sans text-[#C9D1D9] antialiased">
-      <div className="flex w-16 flex-col border-r border-[#30363D] bg-[#0d1117]">
-        <div className="flex h-14 items-center justify-center border-b border-[#30363D] text-[#58A6FF]">
-          <img
-            src={palantirLogo}
-            alt="Palantir"
-            className="h-4 w-auto opacity-90"
-            style={{ filter: 'invert(1) grayscale(1) brightness(1.15)' }}
-          />
+      {/* 사이드바 — 아이콘 + 라벨 */}
+      <div className="flex w-[72px] flex-col border-r border-[#30363D] bg-[#0d1117]">
+        {/* 로고 */}
+        <div className="flex h-14 items-center justify-center border-b border-[#30363D]">
+          <span className="text-[11px] font-black tracking-widest text-[#58A6FF]">TM</span>
         </div>
-        {NAV_ITEMS.map((item) => {
-          const Icon = PAGE_ICONS[item.id]
-          const active = doc.selectedPage === item.id
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSetSelectedPage(item.id)}
-              className={cn(
-                'flex items-center justify-center border-l-2 px-3 py-3.5 transition-colors',
-                active
-                  ? 'border-[#58A6FF] bg-[#24313d] text-[#58A6FF]'
-                  : 'border-transparent text-[#8B949E] hover:bg-[#1f2a34] hover:text-[#C9D1D9]',
-              )}
-              title={item.label}
-            >
-              <Icon size={22} strokeWidth={1.6} />
-            </button>
-          )
-        })}
-        <div className="mt-auto border-t border-[#30363D]">
-          <button
-            type="button"
-            onClick={onExport}
-            className="flex w-full items-center justify-center px-3 py-3.5 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#C9D1D9]"
-            title="여행 데이터 내보내기"
-          >
-            <Download size={20} strokeWidth={1.6} />
+
+        {/* 메인 탭 */}
+        <nav className="flex flex-col gap-0.5 p-1.5">
+          {NAV_ITEMS.map((item) => {
+            const Icon = PAGE_ICONS[item.id]
+            const active = doc.selectedPage === item.id
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSetSelectedPage(item.id)}
+                className={cn(
+                  'flex flex-col items-center gap-1 rounded py-2.5 transition-all',
+                  active
+                    ? 'bg-[#58A6FF]/15 text-[#58A6FF]'
+                    : 'text-[#8B949E] hover:bg-[#1f2a34] hover:text-[#C9D1D9]',
+                )}
+              >
+                <Icon size={18} strokeWidth={active ? 2 : 1.6} />
+                <span className="text-[8px] font-bold tracking-wide">{item.label}</span>
+              </button>
+            )
+          })}
+        </nav>
+
+        {/* 하단 유틸 버튼 */}
+        <div className="mt-auto border-t border-[#30363D] p-1.5 space-y-0.5">
+          <button type="button" onClick={onExport}
+            className="flex w-full flex-col items-center gap-1 rounded py-2 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#C9D1D9]"
+            title="내보내기">
+            <Download size={16} strokeWidth={1.6} />
+            <span className="text-[7px] font-bold tracking-wide">내보내기</span>
           </button>
-          <button
-            type="button"
-            onClick={onReset}
-            className="flex w-full items-center justify-center px-3 py-3.5 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#F85149]"
-            title="데이터 초기화 (전체 삭제 후 기본값 복원)"
-          >
-            <RotateCcw size={18} strokeWidth={1.6} />
+          <button type="button" onClick={onOpenNotionSetup}
+            className={cn('flex w-full flex-col items-center gap-1 rounded py-2 transition-colors hover:bg-[#1f2a34]',
+              notionSyncStatus === 'success' ? 'text-[#3FB950]' : 'text-[#8B949E] hover:text-[#C9D1D9]')}
+            title="노션 연동">
+            <Database size={16} strokeWidth={1.6} />
+            <span className="text-[7px] font-bold tracking-wide">노션</span>
           </button>
-          <button
-            type="button"
-            className="flex w-full items-center justify-center px-3 py-3.5 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#C9D1D9]"
-            title="메시지"
-          >
-            <MessageSquare size={20} strokeWidth={1.6} />
-          </button>
-          <button
-            type="button"
-            onClick={onOpenNotionSetup}
-            className={cn(
-              'flex w-full items-center justify-center px-3 py-3.5 transition-colors hover:bg-[#1f2a34]',
-              notionSyncStatus === 'success'
-                ? 'text-[#3FB950]'
-                : notionSyncStatus === 'error'
-                ? 'text-[#F85149]'
-                : 'text-[#8B949E] hover:text-[#C9D1D9]',
-            )}
-            title="노션 데이터베이스 연동"
-          >
-            <Database size={20} strokeWidth={1.6} />
-          </button>
-          <OnboardingResetButton />
-          <button
-            type="button"
-            className="flex w-full items-center justify-center px-3 py-3.5 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#C9D1D9]"
-            title="설정"
-          >
-            <Settings size={20} strokeWidth={1.6} />
+          <button type="button" onClick={onReset}
+            className="flex w-full flex-col items-center gap-1 rounded py-2 text-[#8B949E] transition-colors hover:bg-[#1f2a34] hover:text-[#F85149]"
+            title="초기화">
+            <RotateCcw size={16} strokeWidth={1.6} />
+            <span className="text-[7px] font-bold tracking-wide">초기화</span>
           </button>
         </div>
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <div className="flex h-12 items-center justify-between border-b border-[#30363D] bg-[#161b22] px-6">
-          <div className="flex items-center gap-4">
-            <div className="text-[11px] font-bold tracking-wide text-[#C9D1D9]">
+        {/* 상단 헤더 — 간소화 */}
+        <div className="flex h-12 items-center justify-between border-b border-[#30363D] bg-[#161b22] px-4">
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] font-bold text-[#C9D1D9]">
               {tripMeta?.commandName || '여행매니저'}
-            </div>
+            </span>
+            {tripMeta?.subtitle && (
+              <>
+                <div className="h-3 w-px bg-[#30363D]" />
+                <span className="text-[11px] text-[#8B949E]">{tripMeta.subtitle}</span>
+              </>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="text-[9px] font-medium text-[#8B949E]">
-                현재 가족
-              </div>
-              <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-[#4B5563]">접속 중</span>
+              <div className="flex items-center gap-1">
                 {families.map((family) => (
                   <button
                     key={family.id}
                     type="button"
                     onClick={() => onSetActiveFamily(family.id)}
                     className={cn(
-                      'border px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.14em]',
+                      'flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium transition-all',
                       activeFamily?.id === family.id
-                        ? 'border-[#58A6FF]/50 bg-[#58A6FF]/12 text-[#C9D1D9]'
-                        : 'border-[#30363D] bg-[#0d1117] text-[#8B949E]',
+                        ? 'bg-[#58A6FF]/20 text-[#58A6FF] ring-1 ring-[#58A6FF]/40'
+                        : 'text-[#8B949E] hover:bg-[#1f2a34] hover:text-[#C9D1D9]',
                     )}
                   >
+                    <span className={cn(
+                      'h-1.5 w-1.5 rounded-full',
+                      activeFamily?.id === family.id ? 'bg-[#58A6FF]' : 'bg-[#30363D]'
+                    )} />
                     {family.title}
                   </button>
                 ))}
@@ -1086,21 +1071,25 @@ function AppShell({
       </div>
 
       {!activeFamily ? (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0b0f14]/86 backdrop-blur-sm">
-          <div className="w-[420px] border border-[#30363D] bg-[#161b22] p-6 shadow-[0_24px_80px_rgba(0,0,0,0.45)]">
-            <div className="mb-2 text-[10px] font-black uppercase tracking-[0.22em] text-[#58A6FF]">
-              가족 프로필
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-[#0b0f14]/90 backdrop-blur-md">
+          <div className="w-[440px] overflow-hidden rounded-xl border border-[#30363D] bg-[#161b22] shadow-[0_32px_80px_rgba(0,0,0,0.6)]">
+            {/* 상단 헤더 */}
+            <div className="border-b border-[#30363D] bg-gradient-to-br from-[#58A6FF]/10 to-transparent px-6 py-5">
+              <div className="mb-1 flex items-center gap-2">
+                <div className="h-2 w-2 rounded-full bg-[#58A6FF]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#58A6FF]">여행매니저</span>
+              </div>
+              <h2 className="text-[20px] font-bold text-[#E6EDF3]">어느 가족으로 시작할까요?</h2>
+              <p className="mt-1 text-[12px] text-[#8B949E]">선택 후 메모·비용·체크리스트에 작성자가 자동 표시됩니다.</p>
             </div>
-            <div className="text-[18px] font-black uppercase tracking-[0.08em] text-[#E6EDF3]">
-              어느 가족으로 접속하시나요?
-            </div>
-            <div className="mt-2 text-[12px] leading-relaxed text-[#8B949E]">
-              선택한 프로필은 브라우저에 저장됩니다. 메모·비용 작성 시 작성자 표시에 사용됩니다.
-            </div>
-            <div className="mt-5 grid gap-2">
+
+            {/* 가족 목록 */}
+            <div className="p-4 space-y-2">
               {families.length === 0 && (
-                <div className="border border-dashed border-[#30363D] px-4 py-5 text-center text-[11px] text-[#8B949E]">
-                  등록된 가족이 없습니다. 아래 버튼으로 추가하세요.
+                <div className="rounded-lg border border-dashed border-[#30363D] px-4 py-8 text-center">
+                  <Users size={32} strokeWidth={1} className="mx-auto mb-3 text-[#30363D]" />
+                  <div className="text-[13px] font-bold text-[#8B949E]">아직 등록된 가족이 없어요</div>
+                  <div className="mt-1 text-[11px] text-[#4B5563]">아래 버튼으로 첫 번째 가족을 추가하세요</div>
                 </div>
               )}
               {families.map((family) => (
@@ -1108,26 +1097,29 @@ function AppShell({
                   key={family.id}
                   type="button"
                   onClick={() => onSetActiveFamily(family.id)}
-                  className="flex items-center justify-between border border-[#30363D] bg-[#0d1117] px-4 py-3 text-left transition-colors hover:border-[#58A6FF]/40 hover:bg-[#1f2a34]/50"
+                  className="flex w-full items-center justify-between rounded-lg border border-[#30363D] bg-[#0d1117] px-4 py-3.5 text-left transition-all hover:border-[#58A6FF]/50 hover:bg-[#1a2433]"
                 >
-                  <div>
-                    <div className="text-[12px] font-black uppercase tracking-[0.12em] text-[#C9D1D9]">
-                      {family.title}
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#58A6FF]/15 text-[13px] font-bold text-[#58A6FF]">
+                      {(family.title || '?')[0]}
                     </div>
-                    <div className="mt-1 text-[10px] text-[#8B949E]">
-                      {family.shortOrigin} 출발 · {getFamilyHeadcountLabel(family)}
+                    <div>
+                      <div className="text-[13px] font-bold text-[#C9D1D9]">{family.title}</div>
+                      <div className="text-[11px] text-[#8B949E]">
+                        {family.shortOrigin} 출발 · {getFamilyHeadcountLabel(family)}
+                      </div>
                     </div>
                   </div>
-                  <ArrowRight size={14} className="text-[#58A6FF]" />
+                  <ArrowRight size={16} className="text-[#58A6FF]" />
                 </button>
               ))}
               <button
                 type="button"
                 onClick={onAddFamily}
-                className="flex items-center justify-center gap-2 border border-dashed border-[#30363D] bg-[#0d1117] px-4 py-3 text-[11px] font-bold text-[#58A6FF] transition-colors hover:border-[#58A6FF]/50 hover:bg-[#1f2a34]/40"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-[#58A6FF]/30 bg-[#58A6FF]/5 px-4 py-3 text-[12px] font-bold text-[#58A6FF] transition-all hover:border-[#58A6FF]/60 hover:bg-[#58A6FF]/10"
               >
-                <Flag size={13} />
-                새 가족 추가
+                <Flag size={14} />
+                + 새 가족 추가
               </button>
             </div>
           </div>
@@ -1140,30 +1132,40 @@ function AppShell({
 function FamilyList({ doc, selection, onSelectEntity }) {
   return (
     <div className="overflow-hidden border border-[#30363D] bg-[#0d1117]">
-      {doc.families.map((family) => {
-        const selected = selection.type === 'family' && selection.id === family.id
-        return (
-          <button
-            key={family.id}
-            type="button"
-            onClick={() => onSelectEntity('family', family.id)}
-            className={cn(
-              'flex w-full items-start justify-between gap-3 border-b border-[#30363D]/50 px-4 py-3 text-left last:border-b-0',
-              selected ? 'bg-[#24313d] shadow-[inset_4px_0_0_#58A6FF]' : 'hover:bg-[#1f2a34]/60',
-            )}
-          >
-            <div>
-              <div className="mb-1 text-[11px] font-bold uppercase tracking-widest text-[#C9D1D9]">
-                {family.title}
+      {doc.families.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+          <div className="text-[#30363D]">
+            <Users size={48} strokeWidth={1} />
+          </div>
+          <div className="text-[14px] font-bold text-[#C9D1D9]">아직 등록된 가족이 없어요</div>
+          <div className="text-[12px] text-[#8B949E]">아래 버튼을 눌러 첫 번째 가족을 추가하세요</div>
+        </div>
+      ) : (
+        doc.families.map((family) => {
+          const selected = selection.type === 'family' && selection.id === family.id
+          return (
+            <button
+              key={family.id}
+              type="button"
+              onClick={() => onSelectEntity('family', family.id)}
+              className={cn(
+                'flex w-full items-start justify-between gap-3 border-b border-[#30363D]/50 px-4 py-3 text-left last:border-b-0',
+                selected ? 'bg-[#24313d] shadow-[inset_4px_0_0_#58A6FF]' : 'hover:bg-[#1f2a34]/60',
+              )}
+            >
+              <div>
+                <div className="mb-1 text-[11px] font-bold uppercase tracking-widest text-[#C9D1D9]">
+                  {family.title}
+                </div>
+                <div className="text-[10px] font-medium text-[#8B949E]">
+                  {family.shortOrigin} 출발 · {getFamilyHeadcountLabel(family)}
+                </div>
               </div>
-              <div className="text-[10px] font-medium text-[#8B949E]">
-                {family.shortOrigin} 출발 · {getFamilyHeadcountLabel(family)}
-              </div>
-            </div>
-            <StatusPill tone={family.status}>{family.status}</StatusPill>
-          </button>
-        )
-      })}
+              <StatusPill tone={family.status}>{family.status}</StatusPill>
+            </button>
+          )
+        })
+      )}
     </div>
   )
 }
@@ -1295,7 +1297,7 @@ function DailyBriefingModal({ briefing, onClose, onOpenEntity }) {
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
               <div className="mb-2 text-[9px] font-black uppercase tracking-[0.22em] text-[#58A6FF]">
-                Daily Briefing
+                오늘의 브리핑
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <h2 className="text-[22px] font-black uppercase tracking-[0.14em] text-[#F0F6FC]">
@@ -1312,26 +1314,26 @@ function DailyBriefingModal({ briefing, onClose, onOpenEntity }) {
               className="inline-flex items-center gap-2 border border-[#30363D] bg-[#0d1117] px-3 py-2 text-[10px] font-black uppercase tracking-wider text-[#C9D1D9] transition-colors hover:border-[#58A6FF]/40 hover:text-[#58A6FF]"
             >
               <X size={14} />
-              Close
+              닫기
             </button>
           </div>
 
           <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
             <div className="border border-[#30363D] bg-[#0d1117]/85 p-4">
-              <div className="mb-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#8B949E]">Command summary</div>
+              <div className="mb-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#8B949E]">요약</div>
               <p className="text-[13px] leading-7 text-[#C9D1D9]">{briefing.summary}</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
               <div className="border border-[#30363D] bg-[#0d1117] p-4 text-center">
-                <div className="text-[8px] font-black uppercase tracking-widest text-[#8B949E]">Live now</div>
+                <div className="text-[8px] font-black uppercase tracking-widest text-[#8B949E]">현재 진행</div>
                 <div className="mt-2 text-[22px] font-black text-[#F0F6FC]">{briefing.liveItems.length}</div>
               </div>
               <div className="border border-[#30363D] bg-[#0d1117] p-4 text-center">
-                <div className="text-[8px] font-black uppercase tracking-widest text-[#8B949E]">Upcoming</div>
+                <div className="text-[8px] font-black uppercase tracking-widest text-[#8B949E]">예정</div>
                 <div className="mt-2 text-[22px] font-black text-[#F0F6FC]">{briefing.soonItems.length}</div>
               </div>
               <div className="border border-[#30363D] bg-[#0d1117] p-4 text-center">
-                <div className="text-[8px] font-black uppercase tracking-widest text-[#8B949E]">Open tasks</div>
+                <div className="text-[8px] font-black uppercase tracking-widest text-[#8B949E]">할 일</div>
                 <div className="mt-2 text-[22px] font-black text-[#F0F6FC]">{briefing.tasks.length}</div>
               </div>
             </div>
@@ -1651,7 +1653,7 @@ function MissionFeedTray({ items, onActivateItem }) {
 
 function SituationBoard({ context, onOpenEntity, onOpenBriefing }) {
   const sections = [
-    { title: 'Live now', items: context.liveEntities, emptyLabel: 'Nothing active in this window.' },
+    { title: '현재 진행', items: context.liveEntities, emptyLabel: 'Nothing active in this window.' },
     { title: 'Coming up', items: [...context.nextEntities, ...context.prepSoon].slice(0, 4), emptyLabel: 'No immediate follow-ups.' },
   ]
 
@@ -3915,44 +3917,54 @@ function FamiliesPage({ doc, selection, onSelectEntity, onUpdatePageNote, onConv
 
       <div className="overflow-y-auto bg-[#0d1117] p-6">
         <SectionTitle eyebrow="준비 현황" title="가족별 할 일" />
-        <div className="grid gap-4">
-          {doc.families.map((family) => {
-            const tasks = getTasksByFamily(doc, family.id)
-            const readiness = getFamilyReadiness(doc, family.id)
-            return (
-              <SelectableCard
-                key={family.id}
-                selected={selection.type === 'family' && selection.id === family.id}
-                onClick={() => onSelectEntity('family', family.id)}
-                className="p-4"
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <div className="text-[12px] font-black uppercase tracking-widest text-[#C9D1D9]">{family.title}</div>
-                    <div className="text-[10px] text-[#8B949E]">{family.origin}</div>
-                  </div>
-                  <StatusPill tone={family.status}>{family.status}</StatusPill>
-                </div>
-                <div className="mb-3 h-1.5 overflow-hidden rounded-full border border-[#30363D]/30 bg-[#0d1117]">
-                  <div
-                    className="h-full bg-[#58A6FF] shadow-[0_0_8px_rgba(88,166,255,0.4)]"
-                    style={{ width: `${readiness}%` }}
-                  />
-                </div>
-                <div className="space-y-2">
-                  {tasks.map((task) => (
-                    <div key={task.id} className="flex items-center justify-between text-[11px]">
-                      <span className="text-[#C9D1D9]">{task.title}</span>
-                      <span className={task.status === 'done' ? 'text-[#3FB950]' : 'text-[#D29922]'}>
-                        {task.status}
-                      </span>
+        {doc.families.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+            <div className="text-[#30363D]">
+              <Users size={48} strokeWidth={1} />
+            </div>
+            <div className="text-[14px] font-bold text-[#C9D1D9]">아직 등록된 가족이 없어요</div>
+            <div className="text-[12px] text-[#8B949E]">아래 버튼을 눌러 첫 번째 가족을 추가하세요</div>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {doc.families.map((family) => {
+              const tasks = getTasksByFamily(doc, family.id)
+              const readiness = getFamilyReadiness(doc, family.id)
+              return (
+                <SelectableCard
+                  key={family.id}
+                  selected={selection.type === 'family' && selection.id === family.id}
+                  onClick={() => onSelectEntity('family', family.id)}
+                  className="p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <div>
+                      <div className="text-[12px] font-black uppercase tracking-widest text-[#C9D1D9]">{family.title}</div>
+                      <div className="text-[10px] text-[#8B949E]">{family.origin}</div>
                     </div>
-                  ))}
-                </div>
-              </SelectableCard>
-            )
-          })}
-        </div>
+                    <StatusPill tone={family.status}>{family.status}</StatusPill>
+                  </div>
+                  <div className="mb-3 h-1.5 overflow-hidden rounded-full border border-[#30363D]/30 bg-[#0d1117]">
+                    <div
+                      className="h-full bg-[#58A6FF] shadow-[0_0_8px_rgba(88,166,255,0.4)]"
+                      style={{ width: `${readiness}%` }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    {tasks.map((task) => (
+                      <div key={task.id} className="flex items-center justify-between text-[11px]">
+                        <span className="text-[#C9D1D9]">{task.title}</span>
+                        <span className={task.status === 'done' ? 'text-[#3FB950]' : 'text-[#D29922]'}>
+                          {task.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </SelectableCard>
+              )
+            })}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -4234,8 +4246,12 @@ function FamiliesWorkspacePage({
             </div>
           </div>
         ) : (
-          <div className="border border-dashed border-[#30363D] bg-[#161b22] p-8 text-[12px] text-[#8B949E]">
-            Add a family on the left to start editing the roster.
+          <div className="flex flex-col items-center justify-center gap-4 py-16 text-center">
+            <div className="text-[#30363D]">
+              <Users size={48} strokeWidth={1} />
+            </div>
+            <div className="text-[14px] font-bold text-[#C9D1D9]">아직 등록된 가족이 없어요</div>
+            <div className="text-[12px] text-[#8B949E]">아래 버튼을 눌러 첫 번째 가족을 추가하세요</div>
           </div>
         )}
       </div>
